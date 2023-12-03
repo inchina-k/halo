@@ -17,6 +17,8 @@ namespace halo
         std::vector<std::unique_ptr<Expr>> m_nodes;
 
         Expr *expr();
+        Expr *or_expr();
+        Expr *and_expr();
         Expr *equality();
         Expr *comparison();
         Expr *term();
@@ -26,11 +28,13 @@ namespace halo
 
         Expr *alloc_grouping(Expr *e);
         Expr *alloc_binary_expr(Token t, Expr *l, Expr *r);
+        Expr *alloc_logical_expr(Token t, Expr *l, Expr *r);
         Expr *alloc_unary_expr(Token t, Expr *e);
         Expr *alloc_int_literal(Token t);
         Expr *alloc_float_literal(Token t);
         Expr *alloc_bool_literal(Token t);
         Expr *alloc_string_literal(Token t);
+        Expr *alloc_null_literal(Token t);
 
     public:
         ExprParser(const std::vector<Token> &tokens)

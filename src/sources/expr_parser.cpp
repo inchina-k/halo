@@ -15,6 +15,12 @@ Expr *ExprParser::alloc_binary_expr(Token t, Expr *l, Expr *r)
     return m_nodes.back().get();
 }
 
+Expr *ExprParser::alloc_logical_expr(Token t, Expr *l, Expr *r)
+{
+    m_nodes.push_back(make_unique<LogicalExpr>(t, l, r));
+    return m_nodes.back().get();
+}
+
 Expr *ExprParser::alloc_unary_expr(Token t, Expr *e)
 {
     m_nodes.push_back(make_unique<UnaryExpr>(t, e));
@@ -45,6 +51,12 @@ Expr *ExprParser::alloc_string_literal(Token t)
     return m_nodes.back().get();
 }
 
+Expr *ExprParser::alloc_null_literal(Token t)
+{
+    m_nodes.push_back(make_unique<NullLiteral>(t));
+    return m_nodes.back().get();
+}
+
 Expr *ExprParser::parse()
 {
     return m_root = expr();
@@ -52,7 +64,37 @@ Expr *ExprParser::parse()
 
 Expr *ExprParser::expr()
 {
-    return equality();
+    return or_expr();
+}
+
+Expr *ExprParser::or_expr()
+{
+    Expr *left = and_expr();
+
+    while (m_tokens[m_curr].m_type == TokenType::Or)
+    {
+        Token op = m_tokens[m_curr];
+        ++m_curr;
+        Expr *right = and_expr();
+        left = alloc_logical_expr(op, left, right);
+    }
+
+    return left;
+}
+
+Expr *ExprParser::and_expr()
+{
+    Expr *left = equality();
+
+    while (m_tokens[m_curr].m_type == TokenType::And)
+    {
+        Token op = m_tokens[m_curr];
+        ++m_curr;
+        Expr *right = equality();
+        left = alloc_logical_expr(op, left, right);
+    }
+
+    return left;
 }
 
 Expr *ExprParser::equality()
@@ -150,6 +192,10 @@ Expr *ExprParser::primary()
     else if (m_tokens[m_curr].m_type == TokenType::StrLiteral)
     {
         return alloc_string_literal(m_tokens[m_curr++]);
+    }
+    else if (m_tokens[m_curr].m_type == TokenType::Null)
+    {
+        return alloc_null_literal(m_tokens[m_curr++]);
     }
     else if (m_tokens[m_curr].m_type == TokenType::OpenPar)
     {

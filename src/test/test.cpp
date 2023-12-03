@@ -762,4 +762,366 @@ TEST_CASE("interpreter")
         Object *o = interpreter.evaluate(e);
         REQUIRE(o->to_str() == "false");
     }
+
+    SUBCASE("2 + 2.0")
+    {
+        string s = "2 + 2.0";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "4.000000");
+    }
+
+    SUBCASE("2.0 + 2")
+    {
+        string s = "2.0 + 2";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "4.000000");
+    }
+
+    SUBCASE("2 + hello")
+    {
+        string s = "2 + \"hello\"";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        REQUIRE_THROWS_WITH(interpreter.evaluate(e), "line 1: incorrect operand types for '+'");
+    }
+
+    SUBCASE("20 / 3")
+    {
+        string s = "20 / 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "6");
+    }
+
+    SUBCASE("20 % 3")
+    {
+        string s = "20 % 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "2");
+    }
+
+    SUBCASE("\n20.0 % 3.0")
+    {
+        string s = "\n20.0 % 3.0";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        REQUIRE_THROWS_WITH(interpreter.evaluate(e), "line 2: incorrect operand types for '%'");
+    }
+
+    SUBCASE("2 < 3")
+    {
+        string s = "2 < 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("3 < 2")
+    {
+        string s = "3 < 2";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("3.0 < 2.0")
+    {
+        string s = "3.0 < 2.0";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("3.0 < 2")
+    {
+        string s = "3.0 < 2";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("3.0 <= 3")
+    {
+        string s = "3.0 <= 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("3 > 3")
+    {
+        string s = "3 > 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("3 >= 3")
+    {
+        string s = "3 >= 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("3 == 3")
+    {
+        string s = "3 == 3";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("3 == 2")
+    {
+        string s = "3 == 2";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("3.0 == 2.0")
+    {
+        string s = "3.0 == 2.0";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("hello == hello")
+    {
+        string s = "\"hello\" == \"hello\"";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("true == true")
+    {
+        string s = "true == true";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("true != true")
+    {
+        string s = "true != true";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("1 < 5 or 5 < 10")
+    {
+        string s = "1 < 5 or 5 < 10";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("1 < 5 and 5 < 10")
+    {
+        string s = "1 < 5 and 5 < 10";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("1 > 5 or 5 < 10")
+    {
+        string s = "1 > 5 or 5 < 10";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "true");
+    }
+
+    SUBCASE("1 > 5 and 5 < 10")
+    {
+        string s = "1 > 5 and 5 < 10";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("true and false")
+    {
+        string s = "true and false";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "false");
+    }
+
+    SUBCASE("0 and 1")
+    {
+        string s = "0 and 1";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "0");
+    }
+
+    SUBCASE("\"\" and \"\"")
+    {
+        string s = "\"\" and \"\"";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "");
+    }
+
+    SUBCASE("0.0 or 1")
+    {
+        string s = "0.0 or 1";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "1");
+    }
+
+    SUBCASE("true and null")
+    {
+        string s = "true and null";
+        Scanner sc(s);
+        auto v = sc.scan();
+        ExprParser p(v);
+        Expr *e = p.parse();
+
+        Interpreter interpreter;
+        Object *o = interpreter.evaluate(e);
+        REQUIRE(o->to_str() == "null");
+    }
 }

@@ -11,8 +11,9 @@ namespace halo
         Object,
         Int,
         Float,
+        Bool,
         String,
-        Bool
+        Null
     };
 
     class GC
@@ -38,11 +39,14 @@ namespace halo
             case ObjectType::Float:
                 m_objects.push_back(new Float());
                 return m_objects.back();
+            case ObjectType::Bool:
+                m_objects.push_back(new Bool());
+                return m_objects.back();
             case ObjectType::String:
                 m_objects.push_back(new String());
                 return m_objects.back();
-            case ObjectType::Bool:
-                m_objects.push_back(new Bool());
+            case ObjectType::Null:
+                m_objects.push_back(new Null());
                 return m_objects.back();
             default:
                 return nullptr;

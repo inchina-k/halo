@@ -13,12 +13,17 @@ string Float::to_str() const
     return to_string(m_val);
 }
 
+string Bool::to_str() const
+{
+    return m_val ? "true" : "false";
+}
+
 string String::to_str() const
 {
     return m_val;
 }
 
-string Bool::to_str() const
+string Null::to_str() const
 {
-    return m_val ? "true" : "false";
+    return "null";
 }

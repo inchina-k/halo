@@ -13,6 +13,11 @@ Object *BinaryExpr::visit(ExprVisitor *v)
     return v->visit_binary_expr(this);
 }
 
+Object *LogicalExpr::visit(ExprVisitor *v)
+{
+    return v->visit_logical_expr(this);
+}
+
 Object *UnaryExpr::visit(ExprVisitor *v)
 {
     return v->visit_unary_expr(this);
@@ -36,4 +41,9 @@ Object *BoolLiteral::visit(ExprVisitor *v)
 Object *StringLiteral::visit(ExprVisitor *v)
 {
     return v->visit_string_literal(this);
+}
+
+Object *NullLiteral::visit(ExprVisitor *v)
+{
+    return v->visit_null_literal(this);
 }

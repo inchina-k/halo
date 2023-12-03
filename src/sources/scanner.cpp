@@ -58,6 +58,9 @@ std::vector<Token> Scanner::scan()
         case '/':
             read_two_symbol_lexeme(TokenType::Div, TokenType::DivEqual);
             break;
+        case '%':
+            read_two_symbol_lexeme(TokenType::Mod, TokenType::ModEqual);
+            break;
         case '<':
             read_two_symbol_lexeme(TokenType::Less, TokenType::LessEqual);
             break;

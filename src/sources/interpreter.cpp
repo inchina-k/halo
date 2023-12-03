@@ -30,108 +30,159 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
     switch (e->m_token.m_type)
     {
     case TokenType::Plus:
-        if (Int *i1 = dynamic_cast<Int *>(o1))
+        if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, plus<long long>()))
         {
-            if (Int *i2 = dynamic_cast<Int *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Int);
-                static_cast<Int *>(r)->m_val = i1->m_val + i2->m_val;
-                return r;
-            }
+            return res;
         }
-        if (Float *f1 = dynamic_cast<Float *>(o1))
+        if (Object *res = bin_op<Float, ObjectType::Float>(o1, o2, plus<double>()))
         {
-            if (Float *f2 = dynamic_cast<Float *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Float);
-                static_cast<Float *>(r)->m_val = f1->m_val + f2->m_val;
-                return r;
-            }
+            return res;
         }
-        if (String *s1 = dynamic_cast<String *>(o1))
+        if (Object *res = bin_op<String, ObjectType::String>(o1, o2, plus<string>()))
         {
-            if (String *s2 = dynamic_cast<String *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::String);
-                static_cast<String *>(r)->m_val = s1->m_val + s2->m_val;
-                return r;
-            }
+            return res;
         }
-        throw runtime_error("incorrect operand for '+'");
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Float>(o1, o2, plus<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
     case TokenType::Minus:
-        if (Int *i1 = dynamic_cast<Int *>(o1))
+        if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, minus<long long>()))
         {
-            if (Int *i2 = dynamic_cast<Int *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Int);
-                static_cast<Int *>(r)->m_val = i1->m_val - i2->m_val;
-                return r;
-            }
+            return res;
         }
-        if (Float *f1 = dynamic_cast<Float *>(o1))
+        if (Object *res = bin_op<Float, ObjectType::Float>(o1, o2, minus<double>()))
         {
-            if (Float *f2 = dynamic_cast<Float *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Float);
-                static_cast<Float *>(r)->m_val = f1->m_val - f2->m_val;
-                return r;
-            }
+            return res;
         }
-        throw runtime_error("incorrect operand for '-'");
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Float>(o1, o2, minus<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
     case TokenType::Mul:
-        if (Int *i1 = dynamic_cast<Int *>(o1))
+        if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, multiplies<long long>()))
         {
-            if (Int *i2 = dynamic_cast<Int *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Int);
-                static_cast<Int *>(r)->m_val = i1->m_val * i2->m_val;
-                return r;
-            }
+            return res;
         }
-        if (Float *f1 = dynamic_cast<Float *>(o1))
+        if (Object *res = bin_op<Float, ObjectType::Float>(o1, o2, multiplies<double>()))
         {
-            if (Float *f2 = dynamic_cast<Float *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Float);
-                static_cast<Float *>(r)->m_val = f1->m_val * f2->m_val;
-                return r;
-            }
+            return res;
         }
-        throw runtime_error("incorrect operand for '*'");
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Float>(o1, o2, multiplies<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
     case TokenType::Div:
-        if (Int *i1 = dynamic_cast<Int *>(o1))
+        if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, divides<long long>()))
         {
-            if (Int *i2 = dynamic_cast<Int *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Int);
-                static_cast<Int *>(r)->m_val = i1->m_val / i2->m_val;
-                return r;
-            }
+            return res;
         }
-        if (Float *f1 = dynamic_cast<Float *>(o1))
+        if (Object *res = bin_op<Float, ObjectType::Float>(o1, o2, divides<double>()))
         {
-            if (Float *f2 = dynamic_cast<Float *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Float);
-                static_cast<Float *>(r)->m_val = f1->m_val / f2->m_val;
-                return r;
-            }
+            return res;
         }
-        throw runtime_error("incorrect operand for '/'");
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Float>(o1, o2, divides<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
     case TokenType::Mod:
-        if (Int *i1 = dynamic_cast<Int *>(o1))
+        if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, modulus<long long>()))
         {
-            if (Int *i2 = dynamic_cast<Int *>(o2))
-            {
-                Object *r = m_gc.new_object(ObjectType::Int);
-                static_cast<Int *>(r)->m_val = i1->m_val % i2->m_val;
-                return r;
-            }
+            return res;
         }
-        throw runtime_error("incorrect operand for '%'");
-    default:
-        throw runtime_error("incorrect operand");
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+    case TokenType::Less:
+        if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, less<long long>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op<Float, ObjectType::Bool, Bool>(o1, o2, less<double>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Bool, Bool>(o1, o2, less<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+    case TokenType::LessEqual:
+        if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, less_equal<long long>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op<Float, ObjectType::Bool, Bool>(o1, o2, less_equal<double>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Bool, Bool>(o1, o2, less_equal<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+    case TokenType::Greater:
+        if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, greater<long long>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op<Float, ObjectType::Bool, Bool>(o1, o2, greater<double>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Bool, Bool>(o1, o2, greater<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+    case TokenType::GreaterEqual:
+        if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, greater_equal<long long>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op<Float, ObjectType::Bool, Bool>(o1, o2, greater_equal<double>()))
+        {
+            return res;
+        }
+        if (Object *res = bin_op_conv<Float, Int, ObjectType::Bool, Bool>(o1, o2, greater_equal<double>()))
+        {
+            return res;
+        }
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+    case TokenType::EqualEqual:
+    {
+        Object *r = m_gc.new_object(ObjectType::Bool);
+        static_cast<Bool *>(r)->m_val = equals(o1, o2);
+        return r;
     }
+    case TokenType::BangEqual:
+    {
+        Object *r = m_gc.new_object(ObjectType::Bool);
+        static_cast<Bool *>(r)->m_val = !equals(o1, o2);
+        return r;
+    }
+    default:
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": unknown operation '" + e->m_token.m_lexeme + "'");
+    }
+}
+
+Object *Interpreter::visit_logical_expr(LogicalExpr *e)
+{
+    Object *left = evaluate(e->m_left);
+
+    if (e->m_token.m_type == TokenType::Or && is_true(left))
+    {
+        return left;
+    }
+
+    if (e->m_token.m_type == TokenType::And && !is_true(left))
+    {
+        return left;
+    }
+
+    return evaluate(e->m_right);
 }
 
 Object *Interpreter::visit_unary_expr(UnaryExpr *e)
@@ -195,4 +246,40 @@ Object *Interpreter::visit_string_literal(StringLiteral *e)
     Object *o = m_gc.new_object(ObjectType::String);
     static_cast<String *>(o)->m_val = e->m_val;
     return o;
+}
+
+Object *Interpreter::visit_null_literal(NullLiteral *)
+{
+    Object *o = m_gc.new_object(ObjectType::Null);
+    return o;
+}
+
+bool Interpreter::is_true(Object *o)
+{
+    if (dynamic_cast<Null *>(o))
+    {
+        return false;
+    }
+
+    if (Bool *b = dynamic_cast<Bool *>(o))
+    {
+        return b->m_val;
+    }
+
+    if (String *s = dynamic_cast<String *>(o))
+    {
+        return !s->m_val.empty();
+    }
+
+    if (Int *i = dynamic_cast<Int *>(o))
+    {
+        return i->m_val != 0;
+    }
+
+    if (Float *f = dynamic_cast<Float *>(o))
+    {
+        return f->m_val != 0.0;
+    }
+
+    return false;
 }
