@@ -1,7 +1,7 @@
 #pragma once
 
 #include "expr.hpp"
-#include "halo_object.hpp"
+#include "object.hpp"
 #include "gc.hpp"
 
 #include <functional>
@@ -10,7 +10,6 @@ namespace halo
 {
     class Interpreter : public ExprVisitor
     {
-        Object *m_res;
         GC m_gc;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
@@ -72,11 +71,6 @@ namespace halo
         static bool is_true(Object *o);
 
     public:
-        Interpreter()
-            : m_res(nullptr)
-        {
-        }
-
         void interpret(Expr *e);
         Object *evaluate(Expr *e);
 
@@ -84,10 +78,6 @@ namespace halo
         Object *visit_binary_expr(BinaryExpr *e) override;
         Object *visit_logical_expr(LogicalExpr *e) override;
         Object *visit_unary_expr(UnaryExpr *e) override;
-        Object *visit_int_literal(IntLiteral *e) override;
-        Object *visit_float_literal(FloatLiteral *e) override;
-        Object *visit_bool_literal(BoolLiteral *e) override;
-        Object *visit_string_literal(StringLiteral *e) override;
-        Object *visit_null_literal(NullLiteral *e) override;
+        Object *visit_literal(Literal *e) override;
     };
 }

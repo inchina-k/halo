@@ -7,9 +7,9 @@ using namespace halo;
 
 void Interpreter::interpret(Expr *e)
 {
-    m_res = evaluate(e);
+    Object *res = evaluate(e);
 
-    cout << (m_res != nullptr ? m_res->to_str() : "null") << endl;
+    cout << (res != nullptr ? res->to_str() : "null") << endl;
 }
 
 Object *Interpreter::evaluate(Expr *e)
@@ -192,13 +192,11 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
     switch (e->m_token.m_type)
     {
     case TokenType::Not:
-        if (Bool *b = dynamic_cast<Bool *>(o))
-        {
-            Object *r = m_gc.new_object(ObjectType::Bool);
-            static_cast<Bool *>(r)->m_val = !b->m_val;
-            return r;
-        }
-        throw runtime_error("incorrect operand for 'not'");
+    {
+        Object *r = m_gc.new_object(ObjectType::Bool);
+        static_cast<Bool *>(r)->m_val = !is_true(o);
+        return r;
+    }
     case TokenType::Minus:
         if (Int *i = dynamic_cast<Int *>(o))
         {
@@ -212,51 +210,57 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
             static_cast<Float *>(r)->m_val = -f->m_val;
             return r;
         }
-        throw runtime_error("incorrect operand for '-'");
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand for '" + e->m_token.m_lexeme + "'");
 
     default:
-        throw runtime_error("incorrect operand");
-        ;
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand for '" + e->m_token.m_lexeme + "'");
     }
 }
 
-Object *Interpreter::visit_int_literal(IntLiteral *e)
+Object *Interpreter::visit_literal(Literal *e)
 {
-    Object *o = m_gc.new_object(ObjectType::Int);
-    static_cast<Int *>(o)->m_val = e->m_val;
-    return o;
-}
+    if (e->m_val)
+    {
+        return e->m_val;
+    }
 
-Object *Interpreter::visit_float_literal(FloatLiteral *e)
-{
-    Object *o = m_gc.new_object(ObjectType::Float);
-    static_cast<Float *>(o)->m_val = e->m_val;
-    return o;
-}
-
-Object *Interpreter::visit_bool_literal(BoolLiteral *e)
-{
-    Object *o = m_gc.new_object(ObjectType::Bool);
-    static_cast<Bool *>(o)->m_val = e->m_val;
-    return o;
-}
-
-Object *Interpreter::visit_string_literal(StringLiteral *e)
-{
-    Object *o = m_gc.new_object(ObjectType::String);
-    static_cast<String *>(o)->m_val = e->m_val;
-    return o;
-}
-
-Object *Interpreter::visit_null_literal(NullLiteral *)
-{
-    Object *o = m_gc.new_object(ObjectType::Null);
-    return o;
+    switch (e->m_token.m_type)
+    {
+    case TokenType::Null:
+        return e->m_val;
+    case TokenType::IntLiteral:
+    {
+        Object *o = m_gc.new_object(ObjectType::Int);
+        static_cast<Int *>(o)->m_val = stoi(e->m_token.m_lexeme);
+        return o;
+    }
+    case TokenType::FloatLiteral:
+    {
+        Object *o = m_gc.new_object(ObjectType::Float);
+        static_cast<Float *>(o)->m_val = stoi(e->m_token.m_lexeme);
+        return o;
+    }
+    case TokenType::True:
+    case TokenType::False:
+    {
+        Object *o = m_gc.new_object(ObjectType::Bool);
+        static_cast<Bool *>(o)->m_val = e->m_token.m_type == TokenType::True;
+        return o;
+    }
+    case TokenType::StrLiteral:
+    {
+        Object *o = m_gc.new_object(ObjectType::String);
+        static_cast<String *>(o)->m_val = e->m_token.m_lexeme;
+        return o;
+    }
+    default:
+        throw runtime_error("line " + to_string(e->m_token.m_line) + ": unknown literal '" + e->m_token.m_lexeme + "'");
+    }
 }
 
 bool Interpreter::is_true(Object *o)
 {
-    if (dynamic_cast<Null *>(o))
+    if (!o)
     {
         return false;
     }
@@ -281,5 +285,5 @@ bool Interpreter::is_true(Object *o)
         return f->m_val != 0.0;
     }
 
-    return false;
+    return true;
 }

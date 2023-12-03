@@ -1,7 +1,7 @@
 #include <iostream>
 #include "../sources/interpreter.hpp"
 #include "../sources/scanner.hpp"
-#include "../sources/expr_parser.hpp"
+#include "../sources/parser.hpp"
 
 using namespace std;
 using namespace halo;
@@ -27,6 +27,11 @@ int main(int argc, char *argv[])
     }
 }
 
+string to_str(Object *o)
+{
+    return !o ? "null"s : o->to_str();
+}
+
 void run(const string &c)
 {
     try
@@ -34,10 +39,10 @@ void run(const string &c)
         Scanner scanner(c);
         auto t = scanner.scan();
 
-        ExprParser parser(t);
+        Parser parser(t);
         auto e = parser.parse();
 
-        cout << interpreter.evaluate(e)->to_str() << endl;
+        cout << to_str(interpreter.evaluate(e)) << endl;
     }
     catch (const std::exception &e)
     {

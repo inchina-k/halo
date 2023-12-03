@@ -88,6 +88,13 @@ std::vector<Token> Scanner::scan()
             {
                 read_identifier();
             }
+            else
+            {
+                m_tokens.emplace_back(TokenType::Bad, std::string(1, m_data[m_start]), m_line, m_offset);
+                ++m_start;
+                ++m_curr;
+                ++m_offset;
+            }
             break;
         }
     }

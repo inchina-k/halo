@@ -4,8 +4,9 @@
 #include "../sources/token.hpp"
 #include "../sources/scanner.hpp"
 #include "../sources/expr.hpp"
-#include "../sources/expr_parser.hpp"
+#include "../sources/parser.hpp"
 #include "../sources/interpreter.hpp"
+#include "../sources/printer.hpp"
 
 using namespace std;
 using namespace halo;
@@ -572,7 +573,7 @@ TEST_CASE("Scanner::read_identifier")
 
 TEST_CASE("Expr classes")
 {
-    ExprPrinter ep;
+    Printer ep;
 
     SUBCASE("BinaryExpr")
     {
@@ -580,8 +581,8 @@ TEST_CASE("Expr classes")
         Token a(TokenType::IntLiteral, "2", 0, 0);
         Token b(TokenType::IntLiteral, "3", 0, 0);
 
-        IntLiteral i1(a);
-        IntLiteral i2(b);
+        Literal i1(a);
+        Literal i2(b);
 
         Expr *e = new BinaryExpr(plus, &i1, &i2);
 
@@ -595,14 +596,14 @@ TEST_CASE("Expr classes")
 
 TEST_CASE("Expr parser")
 {
-    ExprPrinter ep;
+    Printer ep;
 
     SUBCASE("2+3")
     {
         string s = "2+3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -615,7 +616,7 @@ TEST_CASE("Expr parser")
         string s = "(2+3)*-4";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -628,7 +629,7 @@ TEST_CASE("Expr parser")
         string s = "(2+3)*---4";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -641,7 +642,7 @@ TEST_CASE("Expr parser")
         string s = "(2+#)";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
 
         REQUIRE_THROWS_AS(p.parse(), runtime_error);
     }
@@ -651,7 +652,7 @@ TEST_CASE("Expr parser")
         string s = "(2+3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
 
         REQUIRE_THROWS_AS(p.parse(), runtime_error);
     }
@@ -661,7 +662,7 @@ TEST_CASE("Expr parser")
         string s = "2+3)";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -674,7 +675,7 @@ TEST_CASE("Expr parser")
         string s = "2+3 <= 5+7";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -687,7 +688,7 @@ TEST_CASE("Expr parser")
         string s = "2.0+3.0 == 10.0-5.0";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -700,7 +701,7 @@ TEST_CASE("Expr parser")
         string s = "\"Hello\"+\"World\"";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         e->visit(&ep);
@@ -716,7 +717,7 @@ TEST_CASE("interpreter")
         string s = "2+2";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -729,7 +730,7 @@ TEST_CASE("interpreter")
         string s = "\"Hello\"+\"World\"";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -742,7 +743,7 @@ TEST_CASE("interpreter")
         string s = "--4";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -755,7 +756,7 @@ TEST_CASE("interpreter")
         string s = "not true";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -768,7 +769,7 @@ TEST_CASE("interpreter")
         string s = "2 + 2.0";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -781,7 +782,7 @@ TEST_CASE("interpreter")
         string s = "2.0 + 2";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -794,7 +795,7 @@ TEST_CASE("interpreter")
         string s = "2 + \"hello\"";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -806,7 +807,7 @@ TEST_CASE("interpreter")
         string s = "20 / 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -819,7 +820,7 @@ TEST_CASE("interpreter")
         string s = "20 % 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -832,7 +833,7 @@ TEST_CASE("interpreter")
         string s = "\n20.0 % 3.0";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -844,7 +845,7 @@ TEST_CASE("interpreter")
         string s = "2 < 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -857,7 +858,7 @@ TEST_CASE("interpreter")
         string s = "3 < 2";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -870,7 +871,7 @@ TEST_CASE("interpreter")
         string s = "3.0 < 2.0";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -883,7 +884,7 @@ TEST_CASE("interpreter")
         string s = "3.0 < 2";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -896,7 +897,7 @@ TEST_CASE("interpreter")
         string s = "3.0 <= 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -909,7 +910,7 @@ TEST_CASE("interpreter")
         string s = "3 > 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -922,7 +923,7 @@ TEST_CASE("interpreter")
         string s = "3 >= 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -935,7 +936,7 @@ TEST_CASE("interpreter")
         string s = "3 == 3";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -948,7 +949,7 @@ TEST_CASE("interpreter")
         string s = "3 == 2";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -961,7 +962,7 @@ TEST_CASE("interpreter")
         string s = "3.0 == 2.0";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -974,7 +975,7 @@ TEST_CASE("interpreter")
         string s = "\"hello\" == \"hello\"";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -987,7 +988,7 @@ TEST_CASE("interpreter")
         string s = "true == true";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1000,7 +1001,7 @@ TEST_CASE("interpreter")
         string s = "true != true";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1013,7 +1014,7 @@ TEST_CASE("interpreter")
         string s = "1 < 5 or 5 < 10";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1026,7 +1027,7 @@ TEST_CASE("interpreter")
         string s = "1 < 5 and 5 < 10";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1039,7 +1040,7 @@ TEST_CASE("interpreter")
         string s = "1 > 5 or 5 < 10";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1052,7 +1053,7 @@ TEST_CASE("interpreter")
         string s = "1 > 5 and 5 < 10";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1065,7 +1066,7 @@ TEST_CASE("interpreter")
         string s = "true and false";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1078,7 +1079,7 @@ TEST_CASE("interpreter")
         string s = "0 and 1";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1091,7 +1092,7 @@ TEST_CASE("interpreter")
         string s = "\"\" and \"\"";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1104,7 +1105,7 @@ TEST_CASE("interpreter")
         string s = "0.0 or 1";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
@@ -1117,11 +1118,11 @@ TEST_CASE("interpreter")
         string s = "true and null";
         Scanner sc(s);
         auto v = sc.scan();
-        ExprParser p(v);
+        Parser p(v);
         Expr *e = p.parse();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
-        REQUIRE(o->to_str() == "null");
+        REQUIRE(o == nullptr);
     }
 }

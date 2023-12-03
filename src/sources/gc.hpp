@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include "halo_object.hpp"
+#include "object.hpp"
 
 namespace halo
 {
