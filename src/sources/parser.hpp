@@ -6,6 +6,7 @@
 
 #include "token.hpp"
 #include "expr.hpp"
+#include "stmt.hpp"
 
 namespace halo
 {
@@ -13,8 +14,13 @@ namespace halo
     {
         const std::vector<Token> m_tokens;
         std::size_t m_curr;
-        Expr *m_root;
+        std::vector<std::unique_ptr<Stmt>> m_stmts;
         std::vector<std::unique_ptr<Expr>> m_nodes;
+        bool m_had_errors;
+
+        Stmt *statement();
+        Stmt *var_statement();
+        Stmt *assignment_statement();
 
         Expr *expr();
         Expr *or_expr();
@@ -31,13 +37,28 @@ namespace halo
         Expr *alloc_logical_expr(Token t, Expr *l, Expr *r);
         Expr *alloc_unary_expr(Token t, Expr *e);
         Expr *alloc_literal(Token t);
+        Expr *alloc_var(Token t);
+
+        bool match(TokenType t);
+        const Token &consume(TokenType t, std::string err);
+        const Token &peek() const;
 
     public:
         Parser(const std::vector<Token> &tokens)
-            : m_tokens(tokens), m_curr(0)
+            : m_tokens(tokens), m_curr(0), m_had_errors(false)
         {
         }
 
-        Expr *parse();
+        bool had_errors() const
+        {
+            return m_had_errors;
+        }
+
+        void parse();
+
+        const std::vector<std::unique_ptr<Stmt>> &statements() const
+        {
+            return m_stmts;
+        }
     };
 }

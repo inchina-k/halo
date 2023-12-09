@@ -1,4 +1,7 @@
 #include <iostream>
+#include <fstream>
+#include <streambuf>
+
 #include "../sources/interpreter.hpp"
 #include "../sources/scanner.hpp"
 #include "../sources/parser.hpp"
@@ -9,7 +12,8 @@ using namespace halo;
 Interpreter interpreter;
 
 void run_prompt();
-void run_script(string s);
+void run_script(const string &s);
+string copy_file(ifstream &f);
 
 int main(int argc, char *argv[])
 {
@@ -40,13 +44,28 @@ void run(const string &c)
         auto t = scanner.scan();
 
         Parser parser(t);
-        auto e = parser.parse();
 
-        cout << to_str(interpreter.evaluate(e)) << endl;
+        parser.parse();
+
+        if (parser.had_errors())
+        {
+            cerr << "parse error" << endl;
+        }
+        else
+        {
+            try
+            {
+                interpreter.execute(parser.statements());
+            }
+            catch (const exception &e)
+            {
+                cerr << e.what() << endl;
+            }
+        }
     }
-    catch (const std::exception &e)
+    catch (const exception &e)
     {
-        std::cerr << e.what() << '\n';
+        cerr << e.what() << endl;
     }
 }
 
@@ -63,7 +82,22 @@ void run_prompt()
     cout << endl;
 }
 
-void run_script(string)
+void run_script(const string &file)
 {
-    cerr << "script mode is not implemented yet" << endl;
+    ifstream f(file);
+
+    if (!f)
+    {
+        cerr << "create the file you twit" << endl;
+    }
+    else
+    {
+        // cout << copy_file(f) << endl;
+        run(copy_file(f));
+    }
+}
+
+string copy_file(ifstream &f)
+{
+    return string((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());
 }

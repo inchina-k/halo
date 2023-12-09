@@ -3,14 +3,18 @@
 #include "expr.hpp"
 #include "object.hpp"
 #include "gc.hpp"
+#include "env.hpp"
+#include "stmt.hpp"
 
 #include <functional>
+#include <memory>
 
 namespace halo
 {
-    class Interpreter : public ExprVisitor
+    class Interpreter : public ExprVisitor, public StmtVisitor
     {
         GC m_gc;
+        Environment m_env;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
         Object *bin_op(Object *left, Object *right, Op op)
@@ -73,11 +77,18 @@ namespace halo
     public:
         void interpret(Expr *e);
         Object *evaluate(Expr *e);
+        void execute(const std::vector<std::unique_ptr<Stmt>> &stmts);
+        void execute_stmt(Stmt *stmt);
 
         Object *visit_grouping(Grouping *e) override;
         Object *visit_binary_expr(BinaryExpr *e) override;
         Object *visit_logical_expr(LogicalExpr *e) override;
         Object *visit_unary_expr(UnaryExpr *e) override;
         Object *visit_literal(Literal *e) override;
+
+        Object *visit_var(Var *e) override;
+
+        void visit_var_stmt(VarStmt *e) override;
+        void visit_assignment_stmt(AssignmentStmt *e) override;
     };
 }

@@ -1,0 +1,5 @@
+var a = 2;
+var b = 3;
+var t = a;
+let a = b;
+let b = t;

@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "parser.hpp"
 
 using namespace std;
@@ -33,9 +35,69 @@ Expr *Parser::alloc_literal(Token t)
     return m_nodes.back().get();
 }
 
-Expr *Parser::parse()
+Expr *Parser::alloc_var(Token t)
 {
-    return m_root = expr();
+    m_nodes.push_back(make_unique<Var>(t));
+    return m_nodes.back().get();
+}
+
+void Parser::parse()
+{
+    try
+    {
+        while (peek().m_type != TokenType::Eof)
+        {
+            m_stmts.emplace_back(statement());
+        }
+    }
+    catch (const exception &e)
+    {
+        cerr << e.what() << endl;
+        m_had_errors = true;
+    }
+}
+
+Stmt *Parser::statement()
+{
+    if (match(TokenType::Var))
+    {
+        return var_statement();
+    }
+
+    if (match(TokenType::Let))
+    {
+        return assignment_statement();
+    }
+
+    throw runtime_error("unknown statement");
+}
+
+Stmt *Parser::var_statement()
+{
+    Token name = consume(TokenType::Identifier, "expected name of var");
+
+    Expr *e = nullptr;
+
+    if (match(TokenType::Equal))
+    {
+        e = expr();
+    }
+
+    consume(TokenType::Semicolon, "expected ;");
+
+    return new VarStmt(name, e);
+}
+
+Stmt *Parser::assignment_statement()
+{
+    Token name = consume(TokenType::Identifier, "expected name of var");
+    consume(TokenType::Equal, "expected =");
+
+    Expr *e = expr();
+
+    consume(TokenType::Semicolon, "expected ;");
+
+    return new AssignmentStmt(name, e);
 }
 
 Expr *Parser::expr()
@@ -161,6 +223,10 @@ Expr *Parser::primary()
     {
         return alloc_literal(m_tokens[m_curr++]);
     }
+    else if (m_tokens[m_curr].m_type == TokenType::Identifier)
+    {
+        return alloc_var(m_tokens[m_curr++]);
+    }
     else if (m_tokens[m_curr].m_type == TokenType::OpenPar)
     {
         ++m_curr;
@@ -176,4 +242,31 @@ Expr *Parser::primary()
     }
 
     throw runtime_error("What am I, Why am I???");
+}
+
+bool Parser::match(TokenType t)
+{
+    if (m_tokens[m_curr].m_type == t)
+    {
+        ++m_curr;
+        return true;
+    }
+
+    return false;
+}
+
+const Token &Parser::consume(TokenType t, std::string err)
+{
+    if (m_tokens[m_curr].m_type == t)
+    {
+        ++m_curr;
+        return m_tokens[m_curr - 1];
+    }
+
+    throw runtime_error(err);
+}
+
+const Token &Parser::peek() const
+{
+    return m_tokens[m_curr];
 }

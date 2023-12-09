@@ -3,11 +3,6 @@
 using namespace halo;
 using namespace std;
 
-Literal::Literal(Token t)
-    : m_token(t), m_val(nullptr)
-{
-}
-
 Object *Grouping::visit(ExprVisitor *v)
 {
     return v->visit_grouping(this);
@@ -31,4 +26,9 @@ Object *UnaryExpr::visit(ExprVisitor *v)
 Object *Literal::visit(ExprVisitor *v)
 {
     return v->visit_literal(this);
+}
+
+Object *Var::visit(ExprVisitor *v)
+{
+    return v->visit_var(this);
 }

@@ -55,5 +55,12 @@ namespace halo
 
             return nullptr;
         }
+
+        Object *visit_var(Var *e) override
+        {
+            m_data << e->m_token.m_lexeme;
+
+            return nullptr;
+        }
     };
 }

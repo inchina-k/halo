@@ -17,9 +17,13 @@ std::vector<Token> Scanner::scan()
             ++m_offset;
             break;
         case '\n':
+        case '\r':
             ++m_start;
             ++m_curr;
-            ++m_line;
+            if (m_data[m_start] == '\n')
+            {
+                ++m_line;
+            }
             m_offset = 0;
             break;
         case '.':
@@ -99,7 +103,7 @@ std::vector<Token> Scanner::scan()
         }
     }
 
-    m_tokens.emplace_back(TokenType::End, "end", m_line, m_offset);
+    m_tokens.emplace_back(TokenType::Eof, "eof", m_line, m_offset);
 
     return m_tokens;
 }

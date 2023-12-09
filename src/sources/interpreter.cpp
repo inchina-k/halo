@@ -17,6 +17,24 @@ Object *Interpreter::evaluate(Expr *e)
     return e->visit(this);
 }
 
+void Interpreter::execute(const std::vector<unique_ptr<Stmt>> &stmts)
+{
+    for (auto &stmt : stmts)
+    {
+        execute_stmt(stmt.get());
+    }
+
+    for (auto &e : m_env.m_data)
+    {
+        cout << e.first << ':' << (e.second ? e.second->to_str() : "null") << endl;
+    }
+}
+
+void Interpreter::execute_stmt(Stmt *stmt)
+{
+    stmt->visit(this);
+}
+
 Object *Interpreter::visit_grouping(Grouping *e)
 {
     return evaluate(e);
@@ -286,4 +304,19 @@ bool Interpreter::is_true(Object *o)
     }
 
     return true;
+}
+
+Object *Interpreter::visit_var(Var *e)
+{
+    return m_env.get(e->m_token);
+}
+
+void Interpreter::visit_var_stmt(VarStmt *e)
+{
+    m_env.define(e->m_token, evaluate(e->m_expr));
+}
+
+void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
+{
+    m_env.assign(e->m_token, evaluate(e->m_expr));
 }
