@@ -49,6 +49,23 @@ namespace halo
             return nullptr;
         }
 
+        Object *visit_call_expr(Call *e) override
+        {
+            e->m_expr->visit(this);
+            m_data << "(";
+            for (size_t i = 0; i < e->m_args.size(); ++i)
+            {
+                if (i != 0)
+                {
+                    m_data << ", ";
+                }
+                e->m_args[i]->visit(this);
+            }
+            m_data << ")";
+
+            return nullptr;
+        }
+
         Object *visit_literal(Literal *e) override
         {
             m_data << e->m_token.m_lexeme;

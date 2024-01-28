@@ -604,7 +604,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -617,7 +617,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -630,7 +630,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -663,7 +663,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -676,7 +676,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -689,7 +689,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -702,7 +702,7 @@ TEST_CASE("Expr parser")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         e->visit(&ep);
 
@@ -718,7 +718,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -731,7 +731,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -744,7 +744,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -757,7 +757,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -770,7 +770,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -783,7 +783,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -796,7 +796,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         REQUIRE_THROWS_WITH(interpreter.evaluate(e), "line 1: incorrect operand types for '+'");
@@ -808,7 +808,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -821,7 +821,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -834,7 +834,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         REQUIRE_THROWS_WITH(interpreter.evaluate(e), "line 2: incorrect operand types for '%'");
@@ -846,7 +846,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -859,7 +859,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -872,7 +872,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -885,7 +885,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -898,7 +898,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -911,7 +911,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -924,7 +924,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -937,7 +937,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -950,7 +950,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -963,7 +963,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -976,7 +976,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -989,7 +989,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1002,7 +1002,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1015,7 +1015,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1028,7 +1028,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1041,7 +1041,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1054,7 +1054,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1067,7 +1067,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1080,7 +1080,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1093,7 +1093,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1106,7 +1106,7 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
@@ -1119,10 +1119,41 @@ TEST_CASE("interpreter")
         Scanner sc(s);
         auto v = sc.scan();
         Parser p(v);
-        Expr *e = p.parse();
+        Expr *e = p.parse_expr();
 
         Interpreter interpreter;
         Object *o = interpreter.evaluate(e);
         REQUIRE(o == nullptr);
+    }
+}
+
+TEST_CASE("function calls")
+{
+    Printer ep;
+
+    SUBCASE("f()")
+    {
+        string s = "f()";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "f()");
+    }
+
+    SUBCASE("f(1)(2, 3)()")
+    {
+        string s = "f(1)(2, 3)()";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "f(1)(2, 3)()");
     }
 }

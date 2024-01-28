@@ -38,6 +38,8 @@ string to_str(Object *o)
 
 void run(const string &c)
 {
+    vector<string> errors;
+
     try
     {
         Scanner scanner(c);
@@ -45,22 +47,41 @@ void run(const string &c)
 
         Parser parser(t);
 
-        parser.parse();
+        try
+        {
+            parser.parse();
+        }
+        catch (const exception &e)
+        {
+            errors.push_back(e.what());
+        }
 
         if (parser.had_errors())
         {
-            cerr << "parse error" << endl;
+            Parser parser_expr(t);
+            Expr *expr = nullptr;
+
+            try
+            {
+                expr = parser_expr.parse_expr();
+            }
+            catch (const std::exception &e)
+            {
+                errors.push_back(e.what());
+            }
+
+            if (errors.size() == 2)
+            {
+                cerr << "error 1: " << errors[0] << endl;
+                cerr << "error 2: " << errors[1] << endl;
+                return;
+            }
+
+            cout << to_str(interpreter.evaluate(expr)) << endl;
         }
         else
         {
-            try
-            {
-                interpreter.execute(parser.statements());
-            }
-            catch (const exception &e)
-            {
-                cerr << e.what() << endl;
-            }
+            interpreter.execute(parser.statements());
         }
     }
     catch (const exception &e)
@@ -68,6 +89,39 @@ void run(const string &c)
         cerr << e.what() << endl;
     }
 }
+
+// void run_expr(const string &c)
+// {
+//     try
+//     {
+//         Scanner scanner(c);
+//         auto t = scanner.scan();
+
+//         Parser parser(t);
+
+//         Expr *expr = parser.parse_expr();
+
+//         if (parser.had_errors())
+//         {
+//             cerr << "parse error" << endl;
+//         }
+//         else
+//         {
+//             try
+//             {
+//                 cout << to_str(interpreter.evaluate(expr)) << endl;
+//             }
+//             catch (const exception &e)
+//             {
+//                 cerr << e.what() << endl;
+//             }
+//         }
+//     }
+//     catch (const exception &e)
+//     {
+//         cerr << e.what() << endl;
+//     }
+// }
 
 void run_prompt()
 {

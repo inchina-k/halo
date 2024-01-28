@@ -1,5 +1,3 @@
-var a = 2;
-var b = 3;
-var t = a;
-let a = b;
-let b = t;
+var a = null;
+var b = 2;
+let a = a + b;

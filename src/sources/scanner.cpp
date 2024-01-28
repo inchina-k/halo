@@ -20,7 +20,7 @@ std::vector<Token> Scanner::scan()
         case '\r':
             ++m_start;
             ++m_curr;
-            if (m_data[m_start] == '\n')
+            if (m_data[m_curr - 1] == '\n')
             {
                 ++m_line;
             }

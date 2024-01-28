@@ -7,7 +7,7 @@ using namespace halo;
 
 void Interpreter::interpret(Expr *e)
 {
-    Object *res = evaluate(e);
+    Object *res = (e == nullptr) ? nullptr : evaluate(e);
 
     cout << (res != nullptr ? res->to_str() : "null") << endl;
 }
@@ -235,6 +235,11 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
     }
 }
 
+Object *Interpreter::visit_call_expr(Call *e)
+{
+    return nullptr;
+}
+
 Object *Interpreter::visit_literal(Literal *e)
 {
     if (e->m_val)
@@ -313,7 +318,7 @@ Object *Interpreter::visit_var(Var *e)
 
 void Interpreter::visit_var_stmt(VarStmt *e)
 {
-    m_env.define(e->m_token, evaluate(e->m_expr));
+    m_env.define(e->m_token, e->m_expr ? evaluate(e->m_expr) : nullptr);
 }
 
 void Interpreter::visit_assignment_stmt(AssignmentStmt *e)

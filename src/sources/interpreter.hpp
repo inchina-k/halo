@@ -84,6 +84,7 @@ namespace halo
         Object *visit_binary_expr(BinaryExpr *e) override;
         Object *visit_logical_expr(LogicalExpr *e) override;
         Object *visit_unary_expr(UnaryExpr *e) override;
+        Object *visit_call_expr(Call *e) override;
         Object *visit_literal(Literal *e) override;
 
         Object *visit_var(Var *e) override;

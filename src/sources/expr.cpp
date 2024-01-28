@@ -23,6 +23,11 @@ Object *UnaryExpr::visit(ExprVisitor *v)
     return v->visit_unary_expr(this);
 }
 
+Object *Call::visit(ExprVisitor *v)
+{
+    return v->visit_call_expr(this);
+}
+
 Object *Literal::visit(ExprVisitor *v)
 {
     return v->visit_literal(this);

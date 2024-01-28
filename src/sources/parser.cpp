@@ -29,6 +29,12 @@ Expr *Parser::alloc_unary_expr(Token t, Expr *e)
     return m_nodes.back().get();
 }
 
+Expr *Parser::alloc_call_expr(Expr *e, const std::vector<Expr *> &p)
+{
+    m_nodes.push_back(make_unique<Call>(e, p));
+    return m_nodes.back().get();
+}
+
 Expr *Parser::alloc_literal(Token t)
 {
     m_nodes.push_back(make_unique<Literal>(t));
@@ -39,6 +45,11 @@ Expr *Parser::alloc_var(Token t)
 {
     m_nodes.push_back(make_unique<Var>(t));
     return m_nodes.back().get();
+}
+
+Expr *Parser::parse_expr()
+{
+    return expr();
 }
 
 void Parser::parse()
@@ -52,8 +63,8 @@ void Parser::parse()
     }
     catch (const exception &e)
     {
-        cerr << e.what() << endl;
         m_had_errors = true;
+        throw;
     }
 }
 
@@ -210,7 +221,32 @@ Expr *Parser::unary()
         return alloc_unary_expr(op, right);
     }
 
-    return primary();
+    return call();
+}
+
+Expr *Parser::call()
+{
+    Expr *callee = primary();
+
+    while (match(TokenType::OpenPar))
+    {
+        vector<Expr *> args;
+
+        if (peek().m_type != TokenType::ClosePar)
+        {
+            do
+            {
+                Expr *e = expr();
+                args.push_back(e);
+
+            } while (match(TokenType::Comma));
+        }
+
+        consume(TokenType::ClosePar, "expected ')'");
+        callee = alloc_call_expr(callee, args);
+    }
+
+    return callee;
 }
 
 Expr *Parser::primary()

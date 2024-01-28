@@ -30,12 +30,14 @@ namespace halo
         Expr *term();
         Expr *factor();
         Expr *unary();
+        Expr *call();
         Expr *primary();
 
         Expr *alloc_grouping(Expr *e);
         Expr *alloc_binary_expr(Token t, Expr *l, Expr *r);
         Expr *alloc_logical_expr(Token t, Expr *l, Expr *r);
         Expr *alloc_unary_expr(Token t, Expr *e);
+        Expr *alloc_call_expr(Expr *e, const std::vector<Expr *> &p);
         Expr *alloc_literal(Token t);
         Expr *alloc_var(Token t);
 
@@ -54,6 +56,7 @@ namespace halo
             return m_had_errors;
         }
 
+        Expr *parse_expr();
         void parse();
 
         const std::vector<std::unique_ptr<Stmt>> &statements() const

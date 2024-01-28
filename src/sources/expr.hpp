@@ -3,6 +3,7 @@
 #include "token.hpp"
 #include "object.hpp"
 #include <sstream>
+#include <vector>
 
 namespace halo
 {
@@ -68,6 +69,19 @@ namespace halo
         Object *visit(ExprVisitor *v) override;
     };
 
+    struct Call : Expr
+    {
+        Expr *m_expr;
+        std::vector<Expr *> m_args;
+
+        Call(Expr *e, const std::vector<Expr *> &a)
+            : m_expr(e), m_args(a)
+        {
+        }
+
+        Object *visit(ExprVisitor *v) override;
+    };
+
     struct Literal : Expr
     {
         Token m_token;
@@ -99,6 +113,7 @@ namespace halo
         virtual Object *visit_binary_expr(BinaryExpr *e) = 0;
         virtual Object *visit_logical_expr(LogicalExpr *e) = 0;
         virtual Object *visit_unary_expr(UnaryExpr *e) = 0;
+        virtual Object *visit_call_expr(Call *e) = 0;
         virtual Object *visit_literal(Literal *e) = 0;
         virtual Object *visit_var(Var *e) = 0;
     };
