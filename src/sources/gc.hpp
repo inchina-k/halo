@@ -13,6 +13,7 @@ namespace halo
         Float,
         Bool,
         String,
+        Callable,
         Null
     };
 
@@ -20,7 +21,17 @@ namespace halo
     {
         std::list<Object *> m_objects;
 
+        GC()
+        {
+        }
+
     public:
+        static GC &instance()
+        {
+            static GC inst;
+            return inst;
+        }
+
         ~GC()
         {
             for (auto e : m_objects)
@@ -29,10 +40,20 @@ namespace halo
             }
         };
 
-        Object *new_object(ObjectType t)
+        template <typename T>
+        Object *new_object()
+        {
+            m_objects.push_back(new T());
+            return m_objects.back();
+        }
+
+        Object *new_object(ObjectType t, Object *o = nullptr)
         {
             switch (t)
             {
+            case ObjectType::Object:
+                m_objects.push_back(new Object());
+                return m_objects.back();
             case ObjectType::Int:
                 m_objects.push_back(new Int());
                 return m_objects.back();
@@ -44,6 +65,9 @@ namespace halo
                 return m_objects.back();
             case ObjectType::String:
                 m_objects.push_back(new String());
+                return m_objects.back();
+            case ObjectType::Callable:
+                m_objects.push_back(o);
                 return m_objects.back();
             case ObjectType::Null:
                 m_objects.push_back(new Null());

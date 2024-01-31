@@ -5,6 +5,7 @@
 #include "gc.hpp"
 #include "env.hpp"
 #include "stmt.hpp"
+#include "gc.hpp"
 
 #include <functional>
 #include <memory>
@@ -13,7 +14,6 @@ namespace halo
 {
     class Interpreter : public ExprVisitor, public StmtVisitor
     {
-        GC m_gc;
         Environment m_env;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
@@ -23,7 +23,7 @@ namespace halo
             {
                 if (OpType *p_right = dynamic_cast<OpType *>(right))
                 {
-                    Object *r = m_gc.new_object(ObType);
+                    Object *r = GC::instance().new_object(ObType);
                     static_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
@@ -39,7 +39,7 @@ namespace halo
             {
                 if (OpType2 *p_right = dynamic_cast<OpType2 *>(right))
                 {
-                    Object *r = m_gc.new_object(ObType);
+                    Object *r = GC::instance().new_object(ObType);
                     static_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
@@ -48,7 +48,7 @@ namespace halo
             {
                 if (OpType1 *p_right = dynamic_cast<OpType1 *>(right))
                 {
-                    Object *r = m_gc.new_object(ObType);
+                    Object *r = GC::instance().new_object(ObType);
                     static_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
@@ -75,6 +75,8 @@ namespace halo
         static bool is_true(Object *o);
 
     public:
+        Interpreter();
+
         void interpret(Expr *e);
         Object *evaluate(Expr *e);
         void execute(const std::vector<std::unique_ptr<Stmt>> &stmts);
@@ -91,5 +93,7 @@ namespace halo
 
         void visit_var_stmt(VarStmt *e) override;
         void visit_assignment_stmt(AssignmentStmt *e) override;
+        void visit_expression_stmt(ExpressionStmt *e) override;
+        void visit_if_stmt(IfStmt *e) override;
     };
 }

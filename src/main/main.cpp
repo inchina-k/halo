@@ -9,11 +9,11 @@
 using namespace std;
 using namespace halo;
 
-Interpreter interpreter;
-
 void run_prompt();
 void run_script(const string &s);
 string copy_file(ifstream &f);
+
+Interpreter interpreter;
 
 int main(int argc, char *argv[])
 {

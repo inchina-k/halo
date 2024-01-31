@@ -1,17 +1,26 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <stdexcept>
 
 namespace halo
 {
     class Object
     {
     public:
+        Object()
+        {
+        }
+
         virtual ~Object()
         {
         }
 
-        virtual std::string to_str() const = 0;
+        virtual std::string to_str() const
+        {
+            return "Object";
+        }
 
         virtual bool equals(Object *other) const
         {
@@ -107,6 +116,23 @@ namespace halo
             }
 
             return m_val == p->m_val;
+        }
+    };
+
+    struct Callable : Object
+    {
+        Callable()
+        {
+        }
+
+        virtual Object *call([[maybe_unused]] const std::vector<Object *> &args)
+        {
+            throw std::runtime_error("call not implemented");
+        }
+
+        virtual int arity() const
+        {
+            throw std::runtime_error("arity not implemented");
         }
     };
 

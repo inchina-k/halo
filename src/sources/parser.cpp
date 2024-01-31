@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "parser.hpp"
 
@@ -80,7 +81,13 @@ Stmt *Parser::statement()
         return assignment_statement();
     }
 
-    throw runtime_error("unknown statement");
+    if (match(TokenType::If))
+    {
+        return if_statement();
+    }
+
+    return expression_statement();
+    // throw runtime_error("unknown statement");
 }
 
 Stmt *Parser::var_statement()
@@ -109,6 +116,51 @@ Stmt *Parser::assignment_statement()
     consume(TokenType::Semicolon, "expected ;");
 
     return new AssignmentStmt(name, e);
+}
+
+Stmt *Parser::expression_statement()
+{
+    Expr *e = expr();
+
+    consume(TokenType::Semicolon, "expected ;");
+
+    return new ExpressionStmt(e);
+}
+
+Stmt *Parser::if_statement()
+{
+    Expr *e = expr();
+    vector<unique_ptr<Stmt>> then_branch;
+    vector<unique_ptr<Stmt>> else_branch;
+
+    consume(TokenType::Colon, "expected :");
+
+    while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End && peek().m_type != TokenType::Else)
+    {
+        then_branch.emplace_back(statement());
+    }
+
+    if (peek().m_type == TokenType::Eof)
+    {
+        throw runtime_error("unexpected end of if statement");
+    }
+
+    if (peek().m_type == TokenType::Else)
+    {
+        while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End)
+        {
+            else_branch.emplace_back(statement());
+        }
+
+        if (peek().m_type == TokenType::Eof)
+        {
+            throw runtime_error("unexpected end of else statement");
+        }
+    }
+
+    consume(TokenType::End, "missing end in if statement");
+
+    return new IfStmt(e, then_branch, else_branch);
 }
 
 Expr *Parser::expr()

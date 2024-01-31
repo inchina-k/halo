@@ -42,6 +42,8 @@ namespace halo
         True,
         False,
         Null,
+        If,
+        Else,
         For,
         While,
         End,

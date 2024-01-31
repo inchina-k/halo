@@ -1,3 +1,14 @@
-var a = null;
-var b = 2;
-let a = a + b;
+#var a = "Enter name: ";
+#println(a);
+
+#var name = readln();
+#println("Hey, " + name + "!");
+
+#var num1 = readln();
+#var num2 = readln();
+#var res = to_int(num1) + to_int(num2);
+
+#println(res);
+
+var i = to_str(10) + to_str(10);
+println(i);

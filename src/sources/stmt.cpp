@@ -12,3 +12,13 @@ void AssignmentStmt::visit(StmtVisitor *v)
 {
     v->visit_assignment_stmt(this);
 }
+
+void ExpressionStmt::visit(StmtVisitor *v)
+{
+    v->visit_expression_stmt(this);
+}
+
+void IfStmt::visit(StmtVisitor *v)
+{
+    v->visit_if_stmt(this);
+}

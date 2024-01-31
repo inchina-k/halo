@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <vector>
 #include <memory>
+#include <unordered_map>
 
 #include "token.hpp"
 #include "expr.hpp"
@@ -21,6 +21,8 @@ namespace halo
         Stmt *statement();
         Stmt *var_statement();
         Stmt *assignment_statement();
+        Stmt *expression_statement();
+        Stmt *if_statement();
 
         Expr *expr();
         Expr *or_expr();

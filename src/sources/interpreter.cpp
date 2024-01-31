@@ -1,9 +1,100 @@
 #include "Interpreter.hpp"
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 using namespace halo;
+
+struct PrintLine : Callable
+{
+    Object *call(const std::vector<Object *> &args) override
+    {
+        cout << args.front()->to_str() << endl;
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "println";
+    }
+};
+
+struct ReadLine : Callable
+{
+    Object *call([[maybe_unused]] const std::vector<Object *> &args) override
+    {
+        string str;
+        getline(cin, str);
+        Object *res = GC::instance().new_object(ObjectType::String);
+        dynamic_cast<String *>(res)->m_val = str;
+
+        return res;
+    }
+
+    int arity() const override
+    {
+        return 0;
+    }
+
+    string to_str() const override
+    {
+        return "readln";
+    }
+};
+
+struct ToInt : Callable
+{
+    Object *call(const std::vector<Object *> &args) override
+    {
+        Object *res = GC::instance().new_object(ObjectType::Int);
+        dynamic_cast<Int *>(res)->m_val = stoi(args.front()->to_str());
+        return res;
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "to_int";
+    }
+};
+
+struct ToStr : Callable
+{
+    Object *call(const std::vector<Object *> &args) override
+    {
+        Object *res = GC::instance().new_object(ObjectType::String);
+        dynamic_cast<String *>(res)->m_val = args.front()->to_str();
+        return res;
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "to_str";
+    }
+};
+
+Interpreter::Interpreter()
+{
+    m_env.define(Token(TokenType::Var, "println", 0, 0), GC::instance().new_object<PrintLine>());
+    m_env.define(Token(TokenType::Var, "readln", 0, 0), GC::instance().new_object<ReadLine>());
+    m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
+    m_env.define(Token(TokenType::Var, "to_str", 0, 0), GC::instance().new_object<ToStr>());
+}
 
 void Interpreter::interpret(Expr *e)
 {
@@ -24,7 +115,7 @@ void Interpreter::execute(const std::vector<unique_ptr<Stmt>> &stmts)
         execute_stmt(stmt.get());
     }
 
-    for (auto &e : m_env.m_data)
+    for (auto &e : m_env.m_data.back())
     {
         cout << e.first << ':' << (e.second ? e.second->to_str() : "null") << endl;
     }
@@ -171,13 +262,13 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
     case TokenType::EqualEqual:
     {
-        Object *r = m_gc.new_object(ObjectType::Bool);
+        Object *r = GC::instance().new_object(ObjectType::Bool);
         static_cast<Bool *>(r)->m_val = equals(o1, o2);
         return r;
     }
     case TokenType::BangEqual:
     {
-        Object *r = m_gc.new_object(ObjectType::Bool);
+        Object *r = GC::instance().new_object(ObjectType::Bool);
         static_cast<Bool *>(r)->m_val = !equals(o1, o2);
         return r;
     }
@@ -211,20 +302,20 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
     {
     case TokenType::Not:
     {
-        Object *r = m_gc.new_object(ObjectType::Bool);
+        Object *r = GC::instance().new_object(ObjectType::Bool);
         static_cast<Bool *>(r)->m_val = !is_true(o);
         return r;
     }
     case TokenType::Minus:
         if (Int *i = dynamic_cast<Int *>(o))
         {
-            Object *r = m_gc.new_object(ObjectType::Int);
+            Object *r = GC::instance().new_object(ObjectType::Int);
             static_cast<Int *>(r)->m_val = -i->m_val;
             return r;
         }
         if (Float *f = dynamic_cast<Float *>(o))
         {
-            Object *r = m_gc.new_object(ObjectType::Float);
+            Object *r = GC::instance().new_object(ObjectType::Float);
             static_cast<Float *>(r)->m_val = -f->m_val;
             return r;
         }
@@ -237,7 +328,28 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
 
 Object *Interpreter::visit_call_expr(Call *e)
 {
-    return nullptr;
+    Object *o = evaluate(e->m_expr);
+
+    Callable *c = dynamic_cast<Callable *>(o);
+
+    if (!c)
+    {
+        throw runtime_error(o->to_str() + " is not a function");
+    }
+
+    if (c->arity() != int(e->m_args.size()))
+    {
+        throw runtime_error(c->to_str() + ": incorrect number of args");
+    }
+
+    vector<Object *> args;
+
+    for (auto arg : e->m_args)
+    {
+        args.push_back(evaluate(arg));
+    }
+
+    return c->call(args);
 }
 
 Object *Interpreter::visit_literal(Literal *e)
@@ -253,26 +365,26 @@ Object *Interpreter::visit_literal(Literal *e)
         return e->m_val;
     case TokenType::IntLiteral:
     {
-        Object *o = m_gc.new_object(ObjectType::Int);
+        Object *o = GC::instance().new_object(ObjectType::Int);
         static_cast<Int *>(o)->m_val = stoi(e->m_token.m_lexeme);
         return o;
     }
     case TokenType::FloatLiteral:
     {
-        Object *o = m_gc.new_object(ObjectType::Float);
+        Object *o = GC::instance().new_object(ObjectType::Float);
         static_cast<Float *>(o)->m_val = stoi(e->m_token.m_lexeme);
         return o;
     }
     case TokenType::True:
     case TokenType::False:
     {
-        Object *o = m_gc.new_object(ObjectType::Bool);
+        Object *o = GC::instance().new_object(ObjectType::Bool);
         static_cast<Bool *>(o)->m_val = e->m_token.m_type == TokenType::True;
         return o;
     }
     case TokenType::StrLiteral:
     {
-        Object *o = m_gc.new_object(ObjectType::String);
+        Object *o = GC::instance().new_object(ObjectType::String);
         static_cast<String *>(o)->m_val = e->m_token.m_lexeme;
         return o;
     }
@@ -324,4 +436,27 @@ void Interpreter::visit_var_stmt(VarStmt *e)
 void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
 {
     m_env.assign(e->m_token, evaluate(e->m_expr));
+}
+
+void Interpreter::visit_expression_stmt(ExpressionStmt *e)
+{
+    evaluate(e->m_expr);
+}
+
+void Interpreter::visit_if_stmt(IfStmt *e)
+{
+    Object *o = evaluate(e->m_cond);
+
+    if (is_true(o))
+    {
+        m_env.add_scope();
+        execute(e->m_then_branch);
+        m_env.remove_scope();
+    }
+    else if (!e->m_else_branch.empty())
+    {
+        m_env.add_scope();
+        execute(e->m_else_branch);
+        m_env.remove_scope();
+    }
 }
