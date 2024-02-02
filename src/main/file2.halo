@@ -1,0 +1,11 @@
+var a = to_int(readln());
+
+if a > 90:
+    println("watch your health");
+elif a >= 21:
+    println("enjoy your happy hour!");
+else:
+    println("grow up, baby");
+end
+
+println("you're " + to_str(a) + "!!!");

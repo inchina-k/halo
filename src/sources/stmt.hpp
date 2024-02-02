@@ -60,11 +60,6 @@ namespace halo
         std::vector<std::unique_ptr<Stmt>> m_then_branch;
         std::vector<std::unique_ptr<Stmt>> m_else_branch;
 
-        IfStmt(Expr *cond, std::vector<std::unique_ptr<Stmt>> then_branch)
-            : m_cond(cond), m_then_branch(std::move(then_branch))
-        {
-        }
-
         IfStmt(Expr *cond, std::vector<std::unique_ptr<Stmt>> then_branch, std::vector<std::unique_ptr<Stmt>> else_branch)
             : m_cond(cond), m_then_branch(std::move(then_branch)), m_else_branch(std::move(else_branch))
         {

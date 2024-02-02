@@ -264,6 +264,8 @@ namespace
         {"true", TokenType::True},
         {"false", TokenType::False},
         {"null", TokenType::Null},
+        {"if", TokenType::If},
+        {"else", TokenType::Else},
         {"for", TokenType::For},
         {"while", TokenType::While},
         {"end", TokenType::End},

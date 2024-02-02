@@ -15,7 +15,8 @@ namespace halo
 
         void define(Token t, Object *o);
         void assign(Token t, Object *o);
-        Object *get(Token t) const;
+        Object *get(Token t);
+        std::pair<std::unordered_map<std::string, Object *>::iterator, bool> lookup(Token t);
         void add_scope();
         void remove_scope();
     };

@@ -90,6 +90,7 @@ struct ToStr : Callable
 
 Interpreter::Interpreter()
 {
+    m_env.add_scope();
     m_env.define(Token(TokenType::Var, "println", 0, 0), GC::instance().new_object<PrintLine>());
     m_env.define(Token(TokenType::Var, "readln", 0, 0), GC::instance().new_object<ReadLine>());
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());

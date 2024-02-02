@@ -15,26 +15,41 @@ void Environment::define(Token t, Object *o)
 
 void Environment::assign(Token t, Object *o)
 {
-    auto it = m_data.back().find(t.m_lexeme);
+    auto p = lookup(t);
 
-    if (it == m_data.back().end())
+    if (!p.second)
     {
-        throw runtime_error("var is not defined");
+        throw runtime_error(t.m_lexeme + " var is not defined");
     }
 
-    it->second = o;
+    p.first->second = o;
 }
 
-Object *Environment::get(Token t) const
+Object *Environment::get(Token t)
 {
-    auto it = m_data.back().find(t.m_lexeme);
+    auto p = lookup(t);
 
-    if (it == m_data.back().end())
+    if (!p.second)
     {
-        throw runtime_error("var is not found");
+        throw runtime_error(t.m_lexeme + " name is not found");
     }
 
-    return it->second;
+    return p.first->second;
+}
+
+std::pair<std::unordered_map<std::string, Object *>::iterator, bool> Environment::lookup(Token t)
+{
+    for (auto it = m_data.rbegin(); it != m_data.rend(); ++it)
+    {
+        auto it2 = it->find(t.m_lexeme);
+
+        if (it2 != it->end())
+        {
+            return make_pair(it2, true);
+        }
+    }
+
+    return make_pair(std::unordered_map<std::string, Object *>::iterator(), false);
 }
 
 void Environment::add_scope()

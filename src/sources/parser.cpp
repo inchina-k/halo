@@ -145,8 +145,10 @@ Stmt *Parser::if_statement()
         throw runtime_error("unexpected end of if statement");
     }
 
-    if (peek().m_type == TokenType::Else)
+    if (match(TokenType::Else))
     {
+        consume(TokenType::Colon, "expected :");
+
         while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End)
         {
             else_branch.emplace_back(statement());
@@ -160,7 +162,7 @@ Stmt *Parser::if_statement()
 
     consume(TokenType::End, "missing end in if statement");
 
-    return new IfStmt(e, then_branch, else_branch);
+    return new IfStmt(e, move(then_branch), move(else_branch));
 }
 
 Expr *Parser::expr()
