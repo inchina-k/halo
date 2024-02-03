@@ -8,6 +8,8 @@
 #include "../sources/interpreter.hpp"
 #include "../sources/printer.hpp"
 
+#include <fstream>
+
 using namespace std;
 using namespace halo;
 
@@ -1155,5 +1157,62 @@ TEST_CASE("function calls")
         e->visit(&ep);
 
         REQUIRE(ep.m_data.str() == "f(1)(2, 3)()");
+    }
+}
+
+TEST_CASE("scripts")
+{
+    SUBCASE("001")
+    {
+        ifstream file("scripts/001.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "Hello, World!\n");
+    }
+
+    SUBCASE("002")
+    {
+        ifstream file("scripts/002.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("Kamila");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "Hello, " + s_in.str() + "!\n");
+    }
+
+    SUBCASE("010")
+    {
+        ifstream file("scripts/010.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("21");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "enjoy your happy hour!\nyou're 21!!!\n");
     }
 }

@@ -265,6 +265,7 @@ namespace
         {"false", TokenType::False},
         {"null", TokenType::Null},
         {"if", TokenType::If},
+        {"elif", TokenType::Elif},
         {"else", TokenType::Else},
         {"for", TokenType::For},
         {"while", TokenType::While},

@@ -56,12 +56,12 @@ namespace halo
 
     struct IfStmt : Stmt
     {
-        Expr *m_cond;
-        std::vector<std::unique_ptr<Stmt>> m_then_branch;
+        std::vector<Expr *> m_conds;
+        std::vector<std::vector<std::unique_ptr<Stmt>>> m_then_branches;
         std::vector<std::unique_ptr<Stmt>> m_else_branch;
 
-        IfStmt(Expr *cond, std::vector<std::unique_ptr<Stmt>> then_branch, std::vector<std::unique_ptr<Stmt>> else_branch)
-            : m_cond(cond), m_then_branch(std::move(then_branch)), m_else_branch(std::move(else_branch))
+        IfStmt(std::vector<Expr *> conds, std::vector<std::vector<std::unique_ptr<Stmt>>> then_branches, std::vector<std::unique_ptr<Stmt>> else_branch)
+            : m_conds(conds), m_then_branches(std::move(then_branches)), m_else_branch(std::move(else_branch))
         {
         }
 

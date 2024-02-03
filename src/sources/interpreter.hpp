@@ -9,12 +9,15 @@
 
 #include <functional>
 #include <memory>
+#include <iostream>
 
 namespace halo
 {
     class Interpreter : public ExprVisitor, public StmtVisitor
     {
         Environment m_env;
+        std::istream &m_in;
+        std::ostream &m_out;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
         Object *bin_op(Object *left, Object *right, Op op)
@@ -75,7 +78,17 @@ namespace halo
         static bool is_true(Object *o);
 
     public:
-        Interpreter();
+        Interpreter(std::istream &in = std::cin, std::ostream &out = std::cout);
+
+        std::istream &get_in()
+        {
+            return m_in;
+        }
+
+        std::ostream &get_out()
+        {
+            return m_out;
+        }
 
         void interpret(Expr *e);
         Object *evaluate(Expr *e);

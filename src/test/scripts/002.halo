@@ -1,0 +1,2 @@
+var name = readln();
+println("Hello, " + name + "!");

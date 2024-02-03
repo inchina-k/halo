@@ -8,9 +8,11 @@ using namespace halo;
 
 struct PrintLine : Callable
 {
+    Interpreter *interp = nullptr;
+
     Object *call(const std::vector<Object *> &args) override
     {
-        cout << args.front()->to_str() << endl;
+        interp->get_out() << (!args.front() ? "null"s : args.front()->to_str()) << endl;
         return nullptr;
     }
 
@@ -27,10 +29,12 @@ struct PrintLine : Callable
 
 struct ReadLine : Callable
 {
+    Interpreter *interp = nullptr;
+
     Object *call([[maybe_unused]] const std::vector<Object *> &args) override
     {
         string str;
-        getline(cin, str);
+        getline(interp->get_in(), str);
         Object *res = GC::instance().new_object(ObjectType::String);
         dynamic_cast<String *>(res)->m_val = str;
 
@@ -88,11 +92,19 @@ struct ToStr : Callable
     }
 };
 
-Interpreter::Interpreter()
+Interpreter::Interpreter(istream &in, ostream &out)
+    : m_in(in), m_out(out)
 {
     m_env.add_scope();
-    m_env.define(Token(TokenType::Var, "println", 0, 0), GC::instance().new_object<PrintLine>());
-    m_env.define(Token(TokenType::Var, "readln", 0, 0), GC::instance().new_object<ReadLine>());
+
+    PrintLine *pl = static_cast<PrintLine *>(GC::instance().new_object<PrintLine>());
+    pl->interp = this;
+    m_env.define(Token(TokenType::Var, "println", 0, 0), pl);
+
+    ReadLine *rl = static_cast<ReadLine *>(GC::instance().new_object<ReadLine>());
+    rl->interp = this;
+    m_env.define(Token(TokenType::Var, "readln", 0, 0), rl);
+
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
     m_env.define(Token(TokenType::Var, "to_str", 0, 0), GC::instance().new_object<ToStr>());
 }
@@ -116,10 +128,11 @@ void Interpreter::execute(const std::vector<unique_ptr<Stmt>> &stmts)
         execute_stmt(stmt.get());
     }
 
-    for (auto &e : m_env.m_data.back())
-    {
-        cout << e.first << ':' << (e.second ? e.second->to_str() : "null") << endl;
-    }
+    // test purpose
+    // for (auto &e : m_env.m_data.back())
+    // {
+    //     cout << e.first << ':' << (e.second ? e.second->to_str() : "null") << endl;
+    // }
 }
 
 void Interpreter::execute_stmt(Stmt *stmt)
@@ -446,15 +459,20 @@ void Interpreter::visit_expression_stmt(ExpressionStmt *e)
 
 void Interpreter::visit_if_stmt(IfStmt *e)
 {
-    Object *o = evaluate(e->m_cond);
-
-    if (is_true(o))
+    for (size_t i = 0; i < e->m_conds.size(); ++i)
     {
-        m_env.add_scope();
-        execute(e->m_then_branch);
-        m_env.remove_scope();
+        Object *o = evaluate(e->m_conds[i]);
+
+        if (is_true(o))
+        {
+            m_env.add_scope();
+            execute(e->m_then_branches[i]);
+            m_env.remove_scope();
+            return;
+        }
     }
-    else if (!e->m_else_branch.empty())
+
+    if (!e->m_else_branch.empty())
     {
         m_env.add_scope();
         execute(e->m_else_branch);

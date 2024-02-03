@@ -101,7 +101,7 @@ Stmt *Parser::var_statement()
         e = expr();
     }
 
-    consume(TokenType::Semicolon, "expected ;");
+    consume(TokenType::Semicolon, "var statement - expected ;");
 
     return new VarStmt(name, e);
 }
@@ -113,7 +113,7 @@ Stmt *Parser::assignment_statement()
 
     Expr *e = expr();
 
-    consume(TokenType::Semicolon, "expected ;");
+    consume(TokenType::Semicolon, "assignment statement - expected ;");
 
     return new AssignmentStmt(name, e);
 }
@@ -122,23 +122,34 @@ Stmt *Parser::expression_statement()
 {
     Expr *e = expr();
 
-    consume(TokenType::Semicolon, "expected ;");
+    consume(TokenType::Semicolon, "expression statement - expected ;");
 
     return new ExpressionStmt(e);
 }
 
 Stmt *Parser::if_statement()
 {
-    Expr *e = expr();
-    vector<unique_ptr<Stmt>> then_branch;
+    vector<Expr *> conds;
+    vector<vector<unique_ptr<Stmt>>> then_branches;
     vector<unique_ptr<Stmt>> else_branch;
 
-    consume(TokenType::Colon, "expected :");
-
-    while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End && peek().m_type != TokenType::Else)
+    do
     {
-        then_branch.emplace_back(statement());
-    }
+        conds.push_back(expr());
+
+        consume(TokenType::Colon, "if statement - expected :");
+
+        then_branches.emplace_back();
+
+        while (peek().m_type != TokenType::Eof &&
+               peek().m_type != TokenType::End &&
+               peek().m_type != TokenType::Elif &&
+               peek().m_type != TokenType::Else)
+        {
+            then_branches.back().emplace_back(statement());
+        }
+
+    } while (match(TokenType::Elif));
 
     if (peek().m_type == TokenType::Eof)
     {
@@ -147,7 +158,7 @@ Stmt *Parser::if_statement()
 
     if (match(TokenType::Else))
     {
-        consume(TokenType::Colon, "expected :");
+        consume(TokenType::Colon, "if statement - expected :");
 
         while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End)
         {
@@ -162,7 +173,7 @@ Stmt *Parser::if_statement()
 
     consume(TokenType::End, "missing end in if statement");
 
-    return new IfStmt(e, move(then_branch), move(else_branch));
+    return new IfStmt(conds, move(then_branches), move(else_branch));
 }
 
 Expr *Parser::expr()

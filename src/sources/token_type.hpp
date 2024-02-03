@@ -44,6 +44,7 @@ namespace halo
         Null,
         If,
         Else,
+        Elif,
         For,
         While,
         End,
