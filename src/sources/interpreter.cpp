@@ -72,6 +72,26 @@ struct ToInt : Callable
     }
 };
 
+struct ToFloat : Callable
+{
+    Object *call(const std::vector<Object *> &args) override
+    {
+        Object *res = GC::instance().new_object(ObjectType::Float);
+        dynamic_cast<Float *>(res)->m_val = stod(args.front()->to_str());
+        return res;
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "to_float";
+    }
+};
+
 struct ToStr : Callable
 {
     Object *call(const std::vector<Object *> &args) override
@@ -106,6 +126,7 @@ Interpreter::Interpreter(istream &in, ostream &out)
     m_env.define(Token(TokenType::Var, "readln", 0, 0), rl);
 
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
+    m_env.define(Token(TokenType::Var, "to_float", 0, 0), GC::instance().new_object<ToFloat>());
     m_env.define(Token(TokenType::Var, "to_str", 0, 0), GC::instance().new_object<ToStr>());
 }
 
@@ -476,6 +497,16 @@ void Interpreter::visit_if_stmt(IfStmt *e)
     {
         m_env.add_scope();
         execute(e->m_else_branch);
+        m_env.remove_scope();
+    }
+}
+
+void Interpreter::visit_while_stmt(WhileStmt *e)
+{
+    while (is_true(evaluate(e->m_cond)))
+    {
+        m_env.add_scope();
+        execute(e->m_do_branch);
         m_env.remove_scope();
     }
 }

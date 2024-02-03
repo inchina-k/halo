@@ -108,5 +108,6 @@ namespace halo
         void visit_assignment_stmt(AssignmentStmt *e) override;
         void visit_expression_stmt(ExpressionStmt *e) override;
         void visit_if_stmt(IfStmt *e) override;
+        void visit_while_stmt(WhileStmt *e) override;
     };
 }

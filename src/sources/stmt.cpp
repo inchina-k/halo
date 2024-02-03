@@ -22,3 +22,8 @@ void IfStmt::visit(StmtVisitor *v)
 {
     v->visit_if_stmt(this);
 }
+
+void WhileStmt::visit(StmtVisitor *v)
+{
+    v->visit_while_stmt(this);
+}

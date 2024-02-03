@@ -68,11 +68,25 @@ namespace halo
         void visit(StmtVisitor *v) override;
     };
 
+    struct WhileStmt : Stmt
+    {
+        Expr *m_cond;
+        std::vector<std::unique_ptr<Stmt>> m_do_branch;
+
+        WhileStmt(Expr *cond, std::vector<std::unique_ptr<Stmt>> do_branch)
+            : m_cond(cond), m_do_branch(std::move(do_branch))
+        {
+        }
+
+        void visit(StmtVisitor *v) override;
+    };
+
     struct StmtVisitor
     {
         virtual void visit_var_stmt(VarStmt *e) = 0;
         virtual void visit_assignment_stmt(AssignmentStmt *e) = 0;
         virtual void visit_expression_stmt(ExpressionStmt *e) = 0;
         virtual void visit_if_stmt(IfStmt *e) = 0;
+        virtual void visit_while_stmt(WhileStmt *e) = 0;
     };
 }

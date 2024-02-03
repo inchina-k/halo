@@ -86,6 +86,11 @@ Stmt *Parser::statement()
         return if_statement();
     }
 
+    if (match(TokenType::While))
+    {
+        return while_statement();
+    }
+
     return expression_statement();
     // throw runtime_error("unknown statement");
 }
@@ -174,6 +179,29 @@ Stmt *Parser::if_statement()
     consume(TokenType::End, "missing end in if statement");
 
     return new IfStmt(conds, move(then_branches), move(else_branch));
+}
+
+Stmt *Parser::while_statement()
+{
+    Expr *cond = expr();
+    vector<unique_ptr<Stmt>> do_branch;
+
+    consume(TokenType::Colon, "while statement - expected :");
+
+    while (peek().m_type != TokenType::Eof &&
+           peek().m_type != TokenType::End)
+    {
+        do_branch.emplace_back(statement());
+    }
+
+    if (peek().m_type == TokenType::Eof)
+    {
+        throw runtime_error("unexpected end of if statement");
+    }
+
+    consume(TokenType::End, "missing end in if statement");
+
+    return new WhileStmt(cond, move(do_branch));
 }
 
 Expr *Parser::expr()

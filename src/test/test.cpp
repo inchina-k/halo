@@ -1198,6 +1198,24 @@ TEST_CASE("scripts")
         REQUIRE(s_out.str() == "Hello, " + s_in.str() + "!\n");
     }
 
+    SUBCASE("003")
+    {
+        ifstream file("scripts/003.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "10, 10.500000, 10.000000\n");
+    }
+
     SUBCASE("010")
     {
         ifstream file("scripts/010.halo");
@@ -1214,5 +1232,23 @@ TEST_CASE("scripts")
         interp.execute(p.statements());
 
         REQUIRE(s_out.str() == "enjoy your happy hour!\nyou're 21!!!\n");
+    }
+
+    SUBCASE("011")
+    {
+        ifstream file("scripts/011.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n");
     }
 }
