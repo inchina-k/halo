@@ -24,6 +24,7 @@ namespace halo
         Stmt *expression_statement();
         Stmt *if_statement();
         Stmt *while_statement();
+        Stmt *break_statement();
 
         Expr *expr();
         Expr *or_expr();

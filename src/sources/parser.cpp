@@ -91,6 +91,11 @@ Stmt *Parser::statement()
         return while_statement();
     }
 
+    if (match(TokenType::Break))
+    {
+        return break_statement();
+    }
+
     return expression_statement();
     // throw runtime_error("unknown statement");
 }
@@ -202,6 +207,13 @@ Stmt *Parser::while_statement()
     consume(TokenType::End, "missing end in if statement");
 
     return new WhileStmt(cond, move(do_branch));
+}
+
+Stmt *Parser::break_statement()
+{
+    consume(TokenType::Semicolon, "missing ; after break");
+
+    return new BreakStmt();
 }
 
 Expr *Parser::expr()

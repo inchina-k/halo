@@ -27,3 +27,8 @@ void WhileStmt::visit(StmtVisitor *v)
 {
     v->visit_while_stmt(this);
 }
+
+void BreakStmt::visit(StmtVisitor *v)
+{
+    v->visit_break_stmt(this);
+}

@@ -112,6 +112,27 @@ struct ToStr : Callable
     }
 };
 
+struct Scope
+{
+    Environment &m_env;
+
+    Scope(Environment &env)
+        : m_env(env)
+    {
+        m_env.add_scope();
+    }
+
+    ~Scope()
+    {
+        m_env.remove_scope();
+    }
+};
+
+struct BreakSignal
+{
+    // empty
+};
+
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_in(in), m_out(out)
 {
@@ -486,27 +507,36 @@ void Interpreter::visit_if_stmt(IfStmt *e)
 
         if (is_true(o))
         {
-            m_env.add_scope();
+            Scope s(m_env);
             execute(e->m_then_branches[i]);
-            m_env.remove_scope();
             return;
         }
     }
 
     if (!e->m_else_branch.empty())
     {
-        m_env.add_scope();
+        Scope s(m_env);
         execute(e->m_else_branch);
-        m_env.remove_scope();
     }
 }
 
 void Interpreter::visit_while_stmt(WhileStmt *e)
 {
-    while (is_true(evaluate(e->m_cond)))
+    try
     {
-        m_env.add_scope();
-        execute(e->m_do_branch);
-        m_env.remove_scope();
+        while (is_true(evaluate(e->m_cond)))
+        {
+            Scope s(m_env);
+            execute(e->m_do_branch);
+        }
     }
+    catch (BreakSignal)
+    {
+        // empty
+    }
+}
+
+void Interpreter::visit_break_stmt(BreakStmt *e)
+{
+    throw BreakSignal();
 }
