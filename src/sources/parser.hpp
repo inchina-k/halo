@@ -26,6 +26,7 @@ namespace halo
         Stmt *while_statement();
         Stmt *break_statement();
         Stmt *continue_statement();
+        Stmt *fun_statement();
 
         Expr *expr();
         Expr *or_expr();
@@ -49,6 +50,7 @@ namespace halo
         bool match(TokenType t);
         const Token &consume(TokenType t, std::string err);
         const Token &peek() const;
+        const Token &advance();
 
     public:
         Parser(const std::vector<Token> &tokens)

@@ -6,6 +6,27 @@
 using namespace std;
 using namespace halo;
 
+struct Function : Callable
+{
+    FunStmt *m_fst = nullptr;
+
+    Object *call(const std::vector<Object *> &args) override
+    {
+        // TODO: create scope, bind there params with args, execute body
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return m_fst->m_params.size();
+    }
+
+    string to_str() const override
+    {
+        return "<fun " + m_fst->m_name.m_lexeme + ">(" + to_string(arity()) + ")";
+    }
+};
+
 struct PrintLine : Callable
 {
     Interpreter *interp = nullptr;
@@ -556,4 +577,11 @@ void Interpreter::visit_break_stmt([[maybe_unused]] BreakStmt *e)
 void Interpreter::visit_continue_stmt([[maybe_unused]] ContinueStmt *e)
 {
     throw ContinueSignal();
+}
+
+void Interpreter::visit_fun_stmt(FunStmt *e)
+{
+    Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
+    fn->m_fst = e;
+    m_env.define(Token(TokenType::Var, fn->m_fst->m_name.m_lexeme, 0, 0), fn);
 }

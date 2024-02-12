@@ -91,6 +91,20 @@ namespace halo
         void visit(StmtVisitor *v) override;
     };
 
+    struct FunStmt : Stmt
+    {
+        Token m_name;
+        std::vector<Token> m_params;
+        std::vector<std::unique_ptr<Stmt>> m_body;
+
+        FunStmt(Token name, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
+            : m_name(name), m_params(params), m_body(std::move(body))
+        {
+        }
+
+        void visit(StmtVisitor *v) override;
+    };
+
     struct StmtVisitor
     {
         virtual void visit_var_stmt(VarStmt *e) = 0;
@@ -100,5 +114,6 @@ namespace halo
         virtual void visit_while_stmt(WhileStmt *e) = 0;
         virtual void visit_break_stmt([[maybe_unused]] BreakStmt *e) = 0;
         virtual void visit_continue_stmt([[maybe_unused]] ContinueStmt *e) = 0;
+        virtual void visit_fun_stmt(FunStmt *e) = 0;
     };
 }

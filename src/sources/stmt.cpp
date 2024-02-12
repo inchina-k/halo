@@ -37,3 +37,8 @@ void ContinueStmt::visit(StmtVisitor *v)
 {
     v->visit_continue_stmt(this);
 }
+
+void FunStmt::visit(StmtVisitor *v)
+{
+    v->visit_fun_stmt(this);
+}

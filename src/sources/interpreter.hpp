@@ -111,5 +111,6 @@ namespace halo
         void visit_while_stmt(WhileStmt *e) override;
         void visit_break_stmt(BreakStmt *e) override;
         void visit_continue_stmt(ContinueStmt *e) override;
+        void visit_fun_stmt(FunStmt *e) override;
     };
 }

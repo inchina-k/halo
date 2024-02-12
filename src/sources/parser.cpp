@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <algorithm>
 
 #include "parser.hpp"
 
@@ -99,6 +100,11 @@ Stmt *Parser::statement()
     if (match(TokenType::Continue))
     {
         return continue_statement();
+    }
+
+    if (match(TokenType::Fun))
+    {
+        return fun_statement();
     }
 
     return expression_statement();
@@ -227,6 +233,54 @@ Stmt *Parser::continue_statement()
 
     return new ContinueStmt();
 }
+
+Stmt *Parser::fun_statement()
+{
+    Token name = consume(TokenType::Var, "missing function name");
+
+    consume(TokenType::OpenPar, "missing '(' in function " + name.m_lexeme);
+    vector<Token> params;
+    if (peek().m_type == TokenType::Var)
+    {
+        params.push_back(advance());
+    }
+
+    while (peek().m_type == TokenType::Comma)
+    {
+        advance();
+        params.push_back(consume(TokenType::Var, "missing parameter name after ',' in function " + name.m_lexeme));
+
+        if (count_if(begin(params), end(params), [](const auto &p1, const auto &p2)
+                     { return p1.m_lexeme == p2.m_lexeme; }) > 1)
+        {
+            throw runtime_error("duplicate parameter " + params.back().m_lexeme + " in function " + name.m_lexeme);
+        }
+    }
+    consume(TokenType::ClosePar, "missing ')' in function " + name.m_lexeme);
+
+    consume(TokenType::Colon, "missing ':' in function " + name.m_lexeme);
+
+    vector<unique_ptr<Stmt>> body;
+
+    while (peek().m_type != TokenType::Eof &&
+           peek().m_type != TokenType::End)
+    {
+        body.emplace_back(statement());
+    }
+
+    if (peek().m_type == TokenType::Eof)
+    {
+        throw runtime_error("unexpected end of function " + name.m_lexeme);
+    }
+
+    consume(TokenType::End, "missing end in function " + name.m_lexeme);
+
+    return new FunStmt(name, params, move(body));
+}
+
+/*
+    EXPRESSIONS
+*/
 
 Expr *Parser::expr()
 {
@@ -422,4 +476,10 @@ const Token &Parser::consume(TokenType t, std::string err)
 const Token &Parser::peek() const
 {
     return m_tokens[m_curr];
+}
+
+const Token &Parser::advance()
+{
+    ++m_curr;
+    return m_tokens[m_curr - 1];
 }
