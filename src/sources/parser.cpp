@@ -96,6 +96,11 @@ Stmt *Parser::statement()
         return break_statement();
     }
 
+    if (match(TokenType::Continue))
+    {
+        return continue_statement();
+    }
+
     return expression_statement();
     // throw runtime_error("unknown statement");
 }
@@ -214,6 +219,13 @@ Stmt *Parser::break_statement()
     consume(TokenType::Semicolon, "missing ; after break");
 
     return new BreakStmt();
+}
+
+Stmt *Parser::continue_statement()
+{
+    consume(TokenType::Semicolon, "missing ; after continue");
+
+    return new ContinueStmt();
 }
 
 Expr *Parser::expr()

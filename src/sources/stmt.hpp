@@ -86,6 +86,11 @@ namespace halo
         void visit(StmtVisitor *v) override;
     };
 
+    struct ContinueStmt : Stmt
+    {
+        void visit(StmtVisitor *v) override;
+    };
+
     struct StmtVisitor
     {
         virtual void visit_var_stmt(VarStmt *e) = 0;
@@ -94,5 +99,6 @@ namespace halo
         virtual void visit_if_stmt(IfStmt *e) = 0;
         virtual void visit_while_stmt(WhileStmt *e) = 0;
         virtual void visit_break_stmt([[maybe_unused]] BreakStmt *e) = 0;
+        virtual void visit_continue_stmt([[maybe_unused]] ContinueStmt *e) = 0;
     };
 }

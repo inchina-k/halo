@@ -32,3 +32,8 @@ void BreakStmt::visit(StmtVisitor *v)
 {
     v->visit_break_stmt(this);
 }
+
+void ContinueStmt::visit(StmtVisitor *v)
+{
+    v->visit_continue_stmt(this);
+}

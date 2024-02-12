@@ -133,6 +133,11 @@ struct BreakSignal
     // empty
 };
 
+struct ContinueSignal
+{
+    // empty
+};
+
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_in(in), m_out(out)
 {
@@ -526,8 +531,15 @@ void Interpreter::visit_while_stmt(WhileStmt *e)
     {
         while (is_true(evaluate(e->m_cond)))
         {
-            Scope s(m_env);
-            execute(e->m_do_branch);
+            try
+            {
+                Scope s(m_env);
+                execute(e->m_do_branch);
+            }
+            catch (ContinueSignal)
+            {
+                // empty
+            }
         }
     }
     catch (BreakSignal)
@@ -536,7 +548,12 @@ void Interpreter::visit_while_stmt(WhileStmt *e)
     }
 }
 
-void Interpreter::visit_break_stmt(BreakStmt *e)
+void Interpreter::visit_break_stmt([[maybe_unused]] BreakStmt *e)
 {
     throw BreakSignal();
+}
+
+void Interpreter::visit_continue_stmt([[maybe_unused]] ContinueStmt *e)
+{
+    throw ContinueSignal();
 }
