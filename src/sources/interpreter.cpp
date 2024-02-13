@@ -6,13 +6,56 @@
 using namespace std;
 using namespace halo;
 
+struct Scope
+{
+    Environment &m_env;
+
+    Scope(Environment &env)
+        : m_env(env)
+    {
+        m_env.add_scope();
+    }
+
+    ~Scope()
+    {
+        m_env.remove_scope();
+    }
+};
+
+struct FunScope
+{
+    Environment &m_env;
+
+    FunScope(Environment &env)
+        : m_env(env)
+    {
+        m_env.add_scope();
+    }
+
+    ~FunScope()
+    {
+        m_env.remove_scope();
+    }
+};
+
 struct Function : Callable
 {
+    // TODO: add type ReturnSignal, catch&return its val
+
+    Interpreter *interp = nullptr;
     FunStmt *m_fst = nullptr;
 
     Object *call(const std::vector<Object *> &args) override
     {
-        // TODO: create scope, bind there params with args, execute body
+        FunScope fc(interp->get_env());
+
+        for (size_t i = 0; i < args.size(); ++i)
+        {
+            interp->get_env().define(m_fst->m_params[i], args[i]);
+        }
+
+        interp->execute(m_fst->m_body);
+
         return nullptr;
     }
 
@@ -130,22 +173,6 @@ struct ToStr : Callable
     string to_str() const override
     {
         return "to_str";
-    }
-};
-
-struct Scope
-{
-    Environment &m_env;
-
-    Scope(Environment &env)
-        : m_env(env)
-    {
-        m_env.add_scope();
-    }
-
-    ~Scope()
-    {
-        m_env.remove_scope();
     }
 };
 
@@ -582,6 +609,7 @@ void Interpreter::visit_continue_stmt([[maybe_unused]] ContinueStmt *e)
 void Interpreter::visit_fun_stmt(FunStmt *e)
 {
     Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
+    fn->interp = this;
     fn->m_fst = e;
     m_env.define(Token(TokenType::Var, fn->m_fst->m_name.m_lexeme, 0, 0), fn);
 }

@@ -1305,4 +1305,40 @@ TEST_CASE("scripts")
 
         REQUIRE(s_out.str() == "1\n2\n4\n5\n");
     }
+
+    SUBCASE("014")
+    {
+        ifstream file("scripts/014.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "hello, world\n");
+    }
+
+    SUBCASE("015")
+    {
+        ifstream file("scripts/015.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("Johnson");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "hello, Johnson\nnull\n");
+    }
 }

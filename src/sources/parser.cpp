@@ -236,11 +236,11 @@ Stmt *Parser::continue_statement()
 
 Stmt *Parser::fun_statement()
 {
-    Token name = consume(TokenType::Var, "missing function name");
+    Token name = consume(TokenType::Identifier, "missing function name");
 
     consume(TokenType::OpenPar, "missing '(' in function " + name.m_lexeme);
     vector<Token> params;
-    if (peek().m_type == TokenType::Var)
+    if (peek().m_type == TokenType::Identifier)
     {
         params.push_back(advance());
     }
@@ -248,10 +248,10 @@ Stmt *Parser::fun_statement()
     while (peek().m_type == TokenType::Comma)
     {
         advance();
-        params.push_back(consume(TokenType::Var, "missing parameter name after ',' in function " + name.m_lexeme));
+        params.push_back(consume(TokenType::Identifier, "missing parameter name after ',' in function " + name.m_lexeme));
 
-        if (count_if(begin(params), end(params), [](const auto &p1, const auto &p2)
-                     { return p1.m_lexeme == p2.m_lexeme; }) > 1)
+        if (count_if(begin(params), end(params), [&params](const auto &p)
+                     { return p.m_lexeme == params.back().m_lexeme; }) > 1)
         {
             throw runtime_error("duplicate parameter " + params.back().m_lexeme + " in function " + name.m_lexeme);
         }

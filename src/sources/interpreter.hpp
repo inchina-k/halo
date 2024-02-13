@@ -80,6 +80,11 @@ namespace halo
     public:
         Interpreter(std::istream &in = std::cin, std::ostream &out = std::cout);
 
+        Environment &get_env()
+        {
+            return m_env;
+        }
+
         std::istream &get_in()
         {
             return m_in;
