@@ -17,6 +17,8 @@ namespace halo
         std::vector<std::unique_ptr<Stmt>> m_stmts;
         std::vector<std::unique_ptr<Expr>> m_nodes;
         bool m_had_errors;
+        bool m_is_in_fun;
+        int m_loops_counter;
 
         Stmt *statement();
         Stmt *var_statement();
@@ -27,6 +29,7 @@ namespace halo
         Stmt *break_statement();
         Stmt *continue_statement();
         Stmt *fun_statement();
+        Stmt *return_statement();
 
         Expr *expr();
         Expr *or_expr();
@@ -54,7 +57,7 @@ namespace halo
 
     public:
         Parser(const std::vector<Token> &tokens)
-            : m_tokens(tokens), m_curr(0), m_had_errors(false)
+            : m_tokens(tokens), m_curr(0), m_had_errors(false), m_is_in_fun(false), m_loops_counter(0)
         {
         }
 

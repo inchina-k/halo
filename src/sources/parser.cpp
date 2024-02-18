@@ -107,6 +107,11 @@ Stmt *Parser::statement()
         return fun_statement();
     }
 
+    if (match(TokenType::Return))
+    {
+        return return_statement();
+    }
+
     return expression_statement();
     // throw runtime_error("unknown statement");
 }
@@ -143,7 +148,7 @@ Stmt *Parser::expression_statement()
 {
     Expr *e = expr();
 
-    consume(TokenType::Semicolon, "expression statement - expected ;");
+    consume(TokenType::Semicolon, "line " + to_string(peek().m_line) + ": expression statement - expected ;");
 
     return new ExpressionStmt(e);
 }
@@ -199,6 +204,8 @@ Stmt *Parser::if_statement()
 
 Stmt *Parser::while_statement()
 {
+    ++m_loops_counter;
+
     Expr *cond = expr();
     vector<unique_ptr<Stmt>> do_branch;
 
@@ -217,11 +224,18 @@ Stmt *Parser::while_statement()
 
     consume(TokenType::End, "missing end in if statement");
 
+    --m_loops_counter;
+
     return new WhileStmt(cond, move(do_branch));
 }
 
 Stmt *Parser::break_statement()
 {
+    if (m_loops_counter == 0)
+    {
+        throw runtime_error("line " + to_string(m_tokens[m_curr].m_line) + ": break statement out of loop");
+    }
+
     consume(TokenType::Semicolon, "missing ; after break");
 
     return new BreakStmt();
@@ -229,6 +243,11 @@ Stmt *Parser::break_statement()
 
 Stmt *Parser::continue_statement()
 {
+    if (m_loops_counter == 0)
+    {
+        throw runtime_error("line " + to_string(m_tokens[m_curr].m_line) + ": continue statement out of loop");
+    }
+
     consume(TokenType::Semicolon, "missing ; after continue");
 
     return new ContinueStmt();
@@ -236,6 +255,8 @@ Stmt *Parser::continue_statement()
 
 Stmt *Parser::fun_statement()
 {
+    m_is_in_fun = true;
+
     Token name = consume(TokenType::Identifier, "missing function name");
 
     consume(TokenType::OpenPar, "missing '(' in function " + name.m_lexeme);
@@ -275,7 +296,28 @@ Stmt *Parser::fun_statement()
 
     consume(TokenType::End, "missing end in function " + name.m_lexeme);
 
+    m_is_in_fun = false;
+
     return new FunStmt(name, params, move(body));
+}
+
+Stmt *Parser::return_statement()
+{
+    if (!m_is_in_fun)
+    {
+        throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": return statement out of function");
+    }
+
+    Expr *exp = nullptr;
+
+    if (peek().m_type != TokenType::Semicolon)
+    {
+        exp = expr();
+    }
+
+    consume(TokenType::Semicolon, "missing ; after return statement");
+
+    return new ReturnStmt(exp);
 }
 
 /*

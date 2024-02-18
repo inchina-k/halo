@@ -105,6 +105,18 @@ namespace halo
         void visit(StmtVisitor *v) override;
     };
 
+    struct ReturnStmt : Stmt
+    {
+        Expr *m_expr;
+
+        ReturnStmt(Expr *expr)
+            : m_expr(expr)
+        {
+        }
+
+        void visit(StmtVisitor *v) override;
+    };
+
     struct StmtVisitor
     {
         virtual void visit_var_stmt(VarStmt *e) = 0;
@@ -115,5 +127,6 @@ namespace halo
         virtual void visit_break_stmt([[maybe_unused]] BreakStmt *e) = 0;
         virtual void visit_continue_stmt([[maybe_unused]] ContinueStmt *e) = 0;
         virtual void visit_fun_stmt(FunStmt *e) = 0;
+        virtual void visit_return_stmt(ReturnStmt *e) = 0;
     };
 }

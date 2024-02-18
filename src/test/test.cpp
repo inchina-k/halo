@@ -1216,6 +1216,24 @@ TEST_CASE("scripts")
         REQUIRE(s_out.str() == "10, 10.500000, 10.000000\n");
     }
 
+    SUBCASE("004")
+    {
+        ifstream file("scripts/004.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "Hello");
+    }
+
     SUBCASE("010")
     {
         ifstream file("scripts/010.halo");
@@ -1340,5 +1358,109 @@ TEST_CASE("scripts")
         interp.execute(p.statements());
 
         REQUIRE(s_out.str() == "hello, Johnson\nnull\n");
+    }
+
+    SUBCASE("016")
+    {
+        ifstream file("scripts/016.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "6\n");
+    }
+
+    SUBCASE("017")
+    {
+        ifstream file("scripts/017.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n2\n3\n4\n");
+    }
+
+    SUBCASE("018")
+    {
+        ifstream file("scripts/018.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "6\n1\n1\n");
+    }
+
+    SUBCASE("019")
+    {
+        ifstream file("scripts/019.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: return statement out of function");
+    }
+
+    SUBCASE("020")
+    {
+        ifstream file("scripts/020.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: break statement out of loop");
+    }
+
+    SUBCASE("021")
+    {
+        ifstream file("scripts/021.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: continue statement out of loop");
+    }
+
+    SUBCASE("022")
+    {
+        ifstream file("scripts/022.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "max fun depth exceeded: 1024");
     }
 }

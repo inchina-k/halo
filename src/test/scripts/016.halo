@@ -1,0 +1,5 @@
+fun sum(x, y, z):
+    return x + y + z;
+end
+
+println(sum(1, 2, 3));

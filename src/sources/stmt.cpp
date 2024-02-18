@@ -42,3 +42,8 @@ void FunStmt::visit(StmtVisitor *v)
 {
     v->visit_fun_stmt(this);
 }
+
+void ReturnStmt::visit(StmtVisitor *v)
+{
+    v->visit_return_stmt(this);
+}

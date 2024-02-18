@@ -38,24 +38,52 @@ struct FunScope
     }
 };
 
+struct BreakSignal
+{
+    // empty
+};
+
+struct ContinueSignal
+{
+    // empty
+};
+
+struct ReturnSignal
+{
+    Object *m_res;
+
+    ReturnSignal(Object *res)
+        : m_res(res)
+    {
+    }
+};
+
 struct Function : Callable
 {
-    // TODO: add type ReturnSignal, catch&return its val
-
     Interpreter *interp = nullptr;
     FunStmt *m_fst = nullptr;
 
     Object *call(const std::vector<Object *> &args) override
     {
         FunScope fc(interp->get_env());
+        interp->inc_fun_scope_counter();
 
         for (size_t i = 0; i < args.size(); ++i)
         {
             interp->get_env().define(m_fst->m_params[i], args[i]);
         }
 
-        interp->execute(m_fst->m_body);
+        try
+        {
+            interp->execute(m_fst->m_body);
+        }
+        catch (const ReturnSignal &rs)
+        {
+            interp->dec_fun_scope_counter();
+            return rs.m_res;
+        }
 
+        interp->dec_fun_scope_counter();
         return nullptr;
     }
 
@@ -88,6 +116,27 @@ struct PrintLine : Callable
     string to_str() const override
     {
         return "println";
+    }
+};
+
+struct Print : Callable
+{
+    Interpreter *interp = nullptr;
+
+    Object *call(const std::vector<Object *> &args) override
+    {
+        interp->get_out() << (!args.front() ? "null"s : args.front()->to_str());
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "print";
     }
 };
 
@@ -176,24 +225,18 @@ struct ToStr : Callable
     }
 };
 
-struct BreakSignal
-{
-    // empty
-};
-
-struct ContinueSignal
-{
-    // empty
-};
-
 Interpreter::Interpreter(istream &in, ostream &out)
-    : m_in(in), m_out(out)
+    : m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
 {
     m_env.add_scope();
 
     PrintLine *pl = static_cast<PrintLine *>(GC::instance().new_object<PrintLine>());
     pl->interp = this;
     m_env.define(Token(TokenType::Var, "println", 0, 0), pl);
+
+    Print *p = static_cast<Print *>(GC::instance().new_object<Print>());
+    p->interp = this;
+    m_env.define(Token(TokenType::Var, "print", 0, 0), p);
 
     ReadLine *rl = static_cast<ReadLine *>(GC::instance().new_object<ReadLine>());
     rl->interp = this;
@@ -612,4 +655,10 @@ void Interpreter::visit_fun_stmt(FunStmt *e)
     fn->interp = this;
     fn->m_fst = e;
     m_env.define(Token(TokenType::Var, fn->m_fst->m_name.m_lexeme, 0, 0), fn);
+}
+
+void Interpreter::visit_return_stmt(ReturnStmt *e)
+{
+    Object *r = e->m_expr == nullptr ? nullptr : evaluate(e->m_expr);
+    throw ReturnSignal(r);
 }

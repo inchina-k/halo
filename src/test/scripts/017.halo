@@ -1,0 +1,14 @@
+fun print_nums():
+    var i = 1;
+
+    while i < 10:
+        if i == 5:
+            return;
+        end
+
+        println(i);
+        let i = i + 1;
+    end
+end
+
+print_nums();

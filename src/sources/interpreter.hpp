@@ -10,6 +10,8 @@
 #include <functional>
 #include <memory>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 
 namespace halo
 {
@@ -18,6 +20,8 @@ namespace halo
         Environment m_env;
         std::istream &m_in;
         std::ostream &m_out;
+        int m_fun_scope_counter;
+        const int m_max_fun_depth;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
         Object *bin_op(Object *left, Object *right, Op op)
@@ -95,6 +99,21 @@ namespace halo
             return m_out;
         }
 
+        void inc_fun_scope_counter()
+        {
+            ++m_fun_scope_counter;
+
+            if (m_fun_scope_counter > m_max_fun_depth)
+            {
+                throw std::runtime_error("max fun depth exceeded: " + std::to_string(m_max_fun_depth));
+            }
+        }
+
+        void dec_fun_scope_counter()
+        {
+            --m_fun_scope_counter;
+        }
+
         void interpret(Expr *e);
         Object *evaluate(Expr *e);
         void execute(const std::vector<std::unique_ptr<Stmt>> &stmts);
@@ -117,5 +136,6 @@ namespace halo
         void visit_break_stmt(BreakStmt *e) override;
         void visit_continue_stmt(ContinueStmt *e) override;
         void visit_fun_stmt(FunStmt *e) override;
+        void visit_return_stmt(ReturnStmt *e) override;
     };
 }
