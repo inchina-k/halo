@@ -1,4 +1,5 @@
 #include "expr.hpp"
+#include "stmt.hpp"
 
 using namespace halo;
 using namespace std;
@@ -36,4 +37,14 @@ Object *Literal::visit(ExprVisitor *v)
 Object *Var::visit(ExprVisitor *v)
 {
     return v->visit_var(this);
+}
+
+Object *Lambda::visit(ExprVisitor *v)
+{
+    return v->visit_lambda(this);
+}
+
+Lambda::Lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
+    : m_params(params), m_body(std::move(body))
+{
 }

@@ -49,6 +49,12 @@ Expr *Parser::alloc_var(Token t)
     return m_nodes.back().get();
 }
 
+Expr *Parser::alloc_lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
+{
+    m_nodes.push_back(make_unique<Lambda>(params, move(body)));
+    return m_nodes.back().get();
+}
+
 Expr *Parser::parse_expr()
 {
     return expr();
@@ -462,6 +468,52 @@ Expr *Parser::call()
     return callee;
 }
 
+Expr *Parser::lambda()
+{
+    m_is_in_fun = true;
+
+    consume(TokenType::OpenPar, "missing '(' in lambda");
+    vector<Token> params;
+    if (peek().m_type == TokenType::Identifier)
+    {
+        params.push_back(advance());
+    }
+
+    while (peek().m_type == TokenType::Comma)
+    {
+        advance();
+        params.push_back(consume(TokenType::Identifier, "missing parameter name after ',' in lambda"));
+
+        if (count_if(begin(params), end(params), [&params](const auto &p)
+                     { return p.m_lexeme == params.back().m_lexeme; }) > 1)
+        {
+            throw runtime_error("duplicate parameter " + params.back().m_lexeme + " in lambda");
+        }
+    }
+    consume(TokenType::ClosePar, "missing ')' in lambda");
+
+    consume(TokenType::Colon, "missing ':' in lambda");
+
+    vector<unique_ptr<Stmt>> body;
+
+    while (peek().m_type != TokenType::Eof &&
+           peek().m_type != TokenType::End)
+    {
+        body.emplace_back(statement());
+    }
+
+    if (peek().m_type == TokenType::Eof)
+    {
+        throw runtime_error("unexpected end of lambda");
+    }
+
+    consume(TokenType::End, "missing end in lambda");
+
+    m_is_in_fun = false;
+
+    return alloc_lambda(params, move(body));
+}
+
 Expr *Parser::primary()
 {
     if (m_tokens[m_curr].m_type == TokenType::IntLiteral ||
@@ -471,6 +523,10 @@ Expr *Parser::primary()
         m_tokens[m_curr].m_type == TokenType::Null)
     {
         return alloc_literal(m_tokens[m_curr++]);
+    }
+    else if (match(TokenType::Lambda))
+    {
+        return lambda();
     }
     else if (m_tokens[m_curr].m_type == TokenType::Identifier)
     {

@@ -1463,4 +1463,77 @@ TEST_CASE("scripts")
 
         REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "max fun depth exceeded: 1024");
     }
+
+    SUBCASE("023")
+    {
+        ifstream file("scripts/023.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "6");
+    }
+
+    SUBCASE("024")
+    {
+        ifstream file("scripts/024.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n4\n9\n");
+    }
+
+    SUBCASE("025")
+    {
+        ifstream file("scripts/025.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n4\n9\n");
+    }
+
+    SUBCASE("026")
+    {
+        ifstream file("scripts/026.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        // ERROR: lambda doesn't support lexical scope
+        REQUIRE(s_out.str() == "0\n0\n0\n");
+    }
 }

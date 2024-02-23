@@ -40,6 +40,7 @@ namespace halo
         Expr *factor();
         Expr *unary();
         Expr *call();
+        Expr *lambda();
         Expr *primary();
 
         Expr *alloc_grouping(Expr *e);
@@ -49,6 +50,7 @@ namespace halo
         Expr *alloc_call_expr(Expr *e, const std::vector<Expr *> &p);
         Expr *alloc_literal(Token t);
         Expr *alloc_var(Token t);
+        Expr *alloc_lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
 
         bool match(TokenType t);
         const Token &consume(TokenType t, std::string err);

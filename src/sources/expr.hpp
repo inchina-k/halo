@@ -4,6 +4,7 @@
 #include "object.hpp"
 #include <sstream>
 #include <vector>
+#include <memory>
 
 namespace halo
 {
@@ -107,6 +108,18 @@ namespace halo
         Object *visit(ExprVisitor *v) override;
     };
 
+    struct Stmt;
+
+    struct Lambda : Expr
+    {
+        std::vector<Token> m_params;
+        std::vector<std::unique_ptr<Stmt>> m_body;
+
+        Lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
+
+        Object *visit(ExprVisitor *v) override;
+    };
+
     struct ExprVisitor
     {
         virtual Object *visit_grouping(Grouping *e) = 0;
@@ -116,5 +129,6 @@ namespace halo
         virtual Object *visit_call_expr(Call *e) = 0;
         virtual Object *visit_literal(Literal *e) = 0;
         virtual Object *visit_var(Var *e) = 0;
+        virtual Object *visit_lambda(Lambda *e) = 0;
     };
 }

@@ -79,5 +79,12 @@ namespace halo
 
             return nullptr;
         }
+
+        Object *visit_lambda(Lambda *e) override
+        {
+            m_data << "lambda(" << e->m_params.size() << ")";
+
+            return nullptr;
+        }
     };
 }

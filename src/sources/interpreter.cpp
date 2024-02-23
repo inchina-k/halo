@@ -98,6 +98,46 @@ struct Function : Callable
     }
 };
 
+struct LambdaFunction : Callable
+{
+    Interpreter *interp = nullptr;
+    Lambda *m_l = nullptr;
+
+    Object *call(const std::vector<Object *> &args) override
+    {
+        FunScope fc(interp->get_env());
+        interp->inc_fun_scope_counter();
+
+        for (size_t i = 0; i < args.size(); ++i)
+        {
+            interp->get_env().define(m_l->m_params[i], args[i]);
+        }
+
+        try
+        {
+            interp->execute(m_l->m_body);
+        }
+        catch (const ReturnSignal &rs)
+        {
+            interp->dec_fun_scope_counter();
+            return rs.m_res;
+        }
+
+        interp->dec_fun_scope_counter();
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return m_l->m_params.size();
+    }
+
+    string to_str() const override
+    {
+        return "<lambda>(" + to_string(arity()) + ")";
+    }
+};
+
 struct PrintLine : Callable
 {
     Interpreter *interp = nullptr;
@@ -486,7 +526,7 @@ Object *Interpreter::visit_call_expr(Call *e)
 
     if (!c)
     {
-        throw runtime_error(o->to_str() + " is not a function");
+        throw runtime_error(o->to_str() + " is not a function or lambda");
     }
 
     if (c->arity() != int(e->m_args.size()))
@@ -578,6 +618,14 @@ bool Interpreter::is_true(Object *o)
 Object *Interpreter::visit_var(Var *e)
 {
     return m_env.get(e->m_token);
+}
+
+Object *Interpreter::visit_lambda(Lambda *e)
+{
+    LambdaFunction *lf = static_cast<LambdaFunction *>(GC::instance().new_object<LambdaFunction>());
+    lf->interp = this;
+    lf->m_l = e;
+    return lf;
 }
 
 void Interpreter::visit_var_stmt(VarStmt *e)
