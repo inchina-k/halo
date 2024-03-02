@@ -112,10 +112,11 @@ namespace halo
 
     struct Lambda : Expr
     {
+        std::vector<Token> m_capture;
         std::vector<Token> m_params;
         std::vector<std::unique_ptr<Stmt>> m_body;
 
-        Lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
+        Lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
 
         Object *visit(ExprVisitor *v) override;
     };

@@ -19,5 +19,6 @@ namespace halo
         std::pair<std::unordered_map<std::string, Object *>::iterator, bool> lookup(Token t);
         void add_scope();
         void remove_scope();
+        void swap_env(Environment &other);
     };
 }

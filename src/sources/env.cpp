@@ -61,3 +61,8 @@ void Environment::remove_scope()
 {
     m_data.pop_back();
 }
+
+void Environment::swap_env(Environment &other)
+{
+    m_data.swap(other.m_data);
+}

@@ -8,7 +8,7 @@ end
 
 fun make_lambda():
     var k = 1;
-    return lambda(x): return k * x * x; end;
+    return lambda[k](x): return k * x * x; end;
 end
 
 var k = 0;

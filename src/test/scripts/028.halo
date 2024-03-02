@@ -1,0 +1,9 @@
+var y = 11;
+
+fun make_lambda(x):
+    var y = 0;
+    return lambda[x, y](): println(to_str(x) + " " + to_str(y)); end;
+end
+
+var f = make_lambda(7);
+f();

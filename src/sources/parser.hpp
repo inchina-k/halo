@@ -12,13 +12,22 @@ namespace halo
 {
     class Parser
     {
+        enum class Scopes
+        {
+            If,
+            While,
+            For,
+            Fun,
+            Lambda,
+            Class
+        };
+
         const std::vector<Token> m_tokens;
         std::size_t m_curr;
         std::vector<std::unique_ptr<Stmt>> m_stmts;
         std::vector<std::unique_ptr<Expr>> m_nodes;
         bool m_had_errors;
-        bool m_is_in_fun;
-        int m_loops_counter;
+        std::vector<Scopes> m_scopes;
 
         Stmt *statement();
         Stmt *var_statement();
@@ -50,16 +59,20 @@ namespace halo
         Expr *alloc_call_expr(Expr *e, const std::vector<Expr *> &p);
         Expr *alloc_literal(Token t);
         Expr *alloc_var(Token t);
-        Expr *alloc_lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
+        Expr *alloc_lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
 
         bool match(TokenType t);
         const Token &consume(TokenType t, std::string err);
         const Token &peek() const;
         const Token &advance();
+        bool is_in_loop() const;
+        bool is_in_callable() const;
+        bool is_fun_allowed() const;
+        bool is_lambda_allowed() const;
 
     public:
         Parser(const std::vector<Token> &tokens)
-            : m_tokens(tokens), m_curr(0), m_had_errors(false), m_is_in_fun(false), m_loops_counter(0)
+            : m_tokens(tokens), m_curr(0), m_had_errors(false)
         {
         }
 

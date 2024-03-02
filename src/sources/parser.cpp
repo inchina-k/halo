@@ -49,9 +49,9 @@ Expr *Parser::alloc_var(Token t)
     return m_nodes.back().get();
 }
 
-Expr *Parser::alloc_lambda(const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
+Expr *Parser::alloc_lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
 {
-    m_nodes.push_back(make_unique<Lambda>(params, move(body)));
+    m_nodes.push_back(make_unique<Lambda>(capture, params, move(body)));
     return m_nodes.back().get();
 }
 
@@ -161,6 +161,8 @@ Stmt *Parser::expression_statement()
 
 Stmt *Parser::if_statement()
 {
+    m_scopes.push_back(Scopes::If);
+
     vector<Expr *> conds;
     vector<vector<unique_ptr<Stmt>>> then_branches;
     vector<unique_ptr<Stmt>> else_branch;
@@ -205,12 +207,14 @@ Stmt *Parser::if_statement()
 
     consume(TokenType::End, "missing end in if statement");
 
+    m_scopes.pop_back();
+
     return new IfStmt(conds, move(then_branches), move(else_branch));
 }
 
 Stmt *Parser::while_statement()
 {
-    ++m_loops_counter;
+    m_scopes.push_back(Scopes::While);
 
     Expr *cond = expr();
     vector<unique_ptr<Stmt>> do_branch;
@@ -230,14 +234,14 @@ Stmt *Parser::while_statement()
 
     consume(TokenType::End, "missing end in if statement");
 
-    --m_loops_counter;
+    m_scopes.pop_back();
 
     return new WhileStmt(cond, move(do_branch));
 }
 
 Stmt *Parser::break_statement()
 {
-    if (m_loops_counter == 0)
+    if (!is_in_loop())
     {
         throw runtime_error("line " + to_string(m_tokens[m_curr].m_line) + ": break statement out of loop");
     }
@@ -249,7 +253,7 @@ Stmt *Parser::break_statement()
 
 Stmt *Parser::continue_statement()
 {
-    if (m_loops_counter == 0)
+    if (!is_in_loop())
     {
         throw runtime_error("line " + to_string(m_tokens[m_curr].m_line) + ": continue statement out of loop");
     }
@@ -261,7 +265,12 @@ Stmt *Parser::continue_statement()
 
 Stmt *Parser::fun_statement()
 {
-    m_is_in_fun = true;
+    if (!is_fun_allowed())
+    {
+        throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": fun must be global or a class member");
+    }
+
+    m_scopes.push_back(Scopes::Fun);
 
     Token name = consume(TokenType::Identifier, "missing function name");
 
@@ -302,14 +311,14 @@ Stmt *Parser::fun_statement()
 
     consume(TokenType::End, "missing end in function " + name.m_lexeme);
 
-    m_is_in_fun = false;
+    m_scopes.pop_back();
 
     return new FunStmt(name, params, move(body));
 }
 
 Stmt *Parser::return_statement()
 {
-    if (!m_is_in_fun)
+    if (!is_in_callable())
     {
         throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": return statement out of function");
     }
@@ -470,7 +479,34 @@ Expr *Parser::call()
 
 Expr *Parser::lambda()
 {
-    m_is_in_fun = true;
+    if (!is_lambda_allowed())
+    {
+        throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": lambda cannot be used in another lambda or as a class member");
+    }
+
+    m_scopes.push_back(Scopes::Lambda);
+
+    vector<Token> capture;
+    if (match(TokenType::OpenBracket))
+    {
+        if (peek().m_type == TokenType::Identifier)
+        {
+            capture.push_back(advance());
+        }
+
+        while (peek().m_type == TokenType::Comma)
+        {
+            advance();
+            capture.push_back(consume(TokenType::Identifier, "missing capture element name after ',' in lambda"));
+
+            if (count_if(begin(capture), end(capture), [&capture](const auto &e)
+                         { return e.m_lexeme == capture.back().m_lexeme; }) > 1)
+            {
+                throw runtime_error("duplicate capture element " + capture.back().m_lexeme + " in lambda");
+            }
+        }
+        consume(TokenType::CloseBracket, "missing ']' in lambda");
+    }
 
     consume(TokenType::OpenPar, "missing '(' in lambda");
     vector<Token> params;
@@ -509,9 +545,9 @@ Expr *Parser::lambda()
 
     consume(TokenType::End, "missing end in lambda");
 
-    m_is_in_fun = false;
+    m_scopes.pop_back();
 
-    return alloc_lambda(params, move(body));
+    return alloc_lambda(capture, params, move(body));
 }
 
 Expr *Parser::primary()
@@ -580,4 +616,58 @@ const Token &Parser::advance()
 {
     ++m_curr;
     return m_tokens[m_curr - 1];
+}
+
+bool Parser::is_in_loop() const
+{
+    for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it)
+    {
+        if (*it == Scopes::Fun || *it == Scopes::Lambda || *it == Scopes::Class)
+        {
+            return false;
+        }
+
+        if (*it == Scopes::While || *it == Scopes::For)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Parser::is_in_callable() const
+{
+    for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it)
+    {
+        if (*it == Scopes::Fun || *it == Scopes::Lambda)
+        {
+            return true;
+        }
+
+        if (*it == Scopes::Class)
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+bool Parser::is_fun_allowed() const
+{
+    return m_scopes.empty() || m_scopes.front() == Scopes::Class;
+}
+
+bool Parser::is_lambda_allowed() const
+{
+    for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it)
+    {
+        if (*it == Scopes::Lambda || *it == Scopes::Class)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

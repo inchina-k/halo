@@ -1533,7 +1533,123 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
         interp.execute(p.statements());
 
-        // ERROR: lambda doesn't support lexical scope
-        REQUIRE(s_out.str() == "0\n0\n0\n");
+        REQUIRE(s_out.str() == "1\n4\n9\n");
+    }
+
+    SUBCASE("027")
+    {
+        ifstream file("scripts/027.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "11 7 0\n11 17 1\n");
+    }
+
+    SUBCASE("028")
+    {
+        ifstream file("scripts/028.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "7 0\n");
+        REQUIRE(s_out.str() != "7 11\n");
+    }
+
+    SUBCASE("029")
+    {
+        ifstream file("scripts/029.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n4\n9\n");
+    }
+
+    SUBCASE("030")
+    {
+        ifstream file("scripts/030.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "4\n8\n");
+    }
+
+    SUBCASE("031")
+    {
+        ifstream file("scripts/031.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 2: break statement out of loop");
+    }
+
+    SUBCASE("032")
+    {
+        ifstream file("scripts/032.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 2: continue statement out of loop");
+    }
+
+    SUBCASE("033")
+    {
+        ifstream file("scripts/033.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 2: fun must be global or a class member");
+    }
+
+    SUBCASE("034")
+    {
+        ifstream file("scripts/034.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: lambda cannot be used in another lambda or as a class member");
     }
 }
