@@ -100,42 +100,51 @@ struct Function : Callable
 
 struct LambdaFunction : Callable
 {
-    Interpreter *interp = nullptr;
+    Interpreter *m_interp = nullptr;
     Lambda *m_l = nullptr;
-    vector<Object *> m_capture;
+    std::unordered_map<std::string, Object *> m_capture;
+
+    struct LambdaScope
+    {
+        Interpreter &m_interp;
+        LambdaFunction &m_lf;
+        Environment m_env;
+
+        LambdaScope(Interpreter &interp, LambdaFunction &lf)
+            : m_interp(interp), m_lf(lf)
+        {
+            m_env.m_data.push_back(interp.get_env().m_data[0]);
+            m_env.m_data.push_back(lf.m_capture);
+            m_interp.get_env().swap_env(m_env);
+        }
+
+        ~LambdaScope()
+        {
+            m_env.m_data[0] = m_interp.get_env().m_data[0];
+            m_lf.m_capture = m_interp.get_env().m_data[1];
+            m_interp.get_env().swap_env(m_env);
+        }
+    };
 
     Object *call(const std::vector<Object *> &args) override
     {
-        Environment lambda_env;
-        lambda_env.m_data.push_back(interp->get_env().m_data[0]);
-        lambda_env.m_data.emplace_back();
-        for (size_t i = 0; i < m_capture.size(); ++i)
-        {
-            lambda_env.define(m_l->m_capture[i], m_capture[i]);
-        }
-
-        // FunScope fc(lambda_env);
-        // interp->inc_fun_scope_counter();
+        LambdaScope lscope(*m_interp, *this);
+        m_interp->get_env().m_data.emplace_back();
 
         for (size_t i = 0; i < args.size(); ++i)
         {
-            lambda_env.define(m_l->m_params[i], args[i]);
+            m_interp->get_env().define(m_l->m_params[i], args[i]);
         }
 
         try
         {
-            interp->get_env().swap_env(lambda_env);
-            interp->execute(m_l->m_body);
-            interp->get_env().swap_env(lambda_env);
+            m_interp->execute(m_l->m_body);
         }
         catch (const ReturnSignal &rs)
         {
-            interp->get_env().swap_env(lambda_env);
-            //  interp->dec_fun_scope_counter();
             return rs.m_res;
         }
 
-        // interp->dec_fun_scope_counter();
         return nullptr;
     }
 
@@ -635,11 +644,11 @@ Object *Interpreter::visit_var(Var *e)
 Object *Interpreter::visit_lambda(Lambda *e)
 {
     LambdaFunction *lf = static_cast<LambdaFunction *>(GC::instance().new_object<LambdaFunction>());
-    lf->interp = this;
+    lf->m_interp = this;
     lf->m_l = e;
     for (auto t : e->m_capture)
     {
-        lf->m_capture.push_back(m_env.get(t));
+        lf->m_capture.emplace(t.m_lexeme, m_env.get(t));
     }
     return lf;
 }

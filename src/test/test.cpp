@@ -1652,4 +1652,22 @@ TEST_CASE("scripts")
 
         REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: lambda cannot be used in another lambda or as a class member");
     }
+
+    SUBCASE("035")
+    {
+        ifstream file("scripts/035.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "5\n2\n3\n4\n1\n2\n");
+    }
 }
