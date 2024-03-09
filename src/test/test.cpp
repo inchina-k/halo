@@ -1670,4 +1670,22 @@ TEST_CASE("scripts")
 
         REQUIRE(s_out.str() == "5\n2\n3\n4\n1\n2\n");
     }
+
+    SUBCASE("036")
+    {
+        ifstream file("scripts/036.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "<class Point>:\n\t_init_\n\tmethod\n");
+    }
 }

@@ -1,0 +1,12 @@
+class Point:
+    _init_(x, y):
+        print(x);
+        print(y);
+    end
+
+    method():
+        println();
+    end
+end
+
+print(Point);

@@ -137,5 +137,6 @@ namespace halo
         void visit_continue_stmt(ContinueStmt *e) override;
         void visit_fun_stmt(FunStmt *e) override;
         void visit_return_stmt(ReturnStmt *e) override;
+        void visit_class_stmt(ClassStmt *e) override;
     };
 }

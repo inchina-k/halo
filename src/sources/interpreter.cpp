@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 using namespace halo;
@@ -156,6 +157,63 @@ struct LambdaFunction : Callable
     string to_str() const override
     {
         return "<lambda>(" + to_string(arity()) + ")";
+    }
+};
+
+struct Class : Callable
+{
+    Interpreter *interp = nullptr;
+    ClassStmt *m_cst = nullptr;
+    unordered_map<string, Function *> m_methods;
+
+    Object *call(const std::vector<Object *> &args) override
+    {
+        // FunScope fc(interp->get_env());
+        // interp->inc_fun_scope_counter();
+
+        // for (size_t i = 0; i < args.size(); ++i)
+        // {
+        //     interp->get_env().define(m_fst->m_params[i], args[i]);
+        // }
+
+        // try
+        // {
+        //     interp->execute(m_fst->m_body);
+        // }
+        // catch (const ReturnSignal &rs)
+        // {
+        //     interp->dec_fun_scope_counter();
+        //     return rs.m_res;
+        // }
+
+        // interp->dec_fun_scope_counter();
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return 0;
+    }
+
+    string to_str() const override
+    {
+        string res = "<class " + m_cst->m_name.m_lexeme + ">:\n";
+        vector<string> vs;
+        for (const auto &[name, fn] : m_methods)
+        {
+            vs.push_back(name);
+        }
+
+        sort(vs.begin(), vs.end());
+
+        for (const auto &name : vs)
+        {
+            res += "\t";
+            res += name;
+            res += "\n";
+        }
+
+        return res;
     }
 };
 
@@ -734,4 +792,25 @@ void Interpreter::visit_return_stmt(ReturnStmt *e)
 {
     Object *r = e->m_expr == nullptr ? nullptr : evaluate(e->m_expr);
     throw ReturnSignal(r);
+}
+
+void Interpreter::visit_class_stmt(ClassStmt *e)
+{
+    Class *cl = static_cast<Class *>(GC::instance().new_object<Class>());
+    cl->interp = this;
+    cl->m_cst = e;
+
+    for (const auto &f : e->m_methods)
+    {
+        Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
+        fn->interp = this;
+        fn->m_fst = f.get();
+        if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
+        {
+            throw runtime_error("class " + cl->m_cst->m_name.m_lexeme + ": " + fn->m_fst->m_name.m_lexeme + " method is defined already");
+        }
+        cl->m_methods.emplace(fn->m_fst->m_name.m_lexeme, fn);
+    }
+
+    m_env.define(Token(TokenType::Var, cl->m_cst->m_name.m_lexeme, 0, 0), cl);
 }

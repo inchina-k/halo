@@ -7,7 +7,7 @@ void Environment::define(Token t, Object *o)
 {
     if (m_data.back().find(t.m_lexeme) != m_data.back().end())
     {
-        throw runtime_error("variable is defined already");
+        throw runtime_error(t.m_lexeme + " var is defined already");
     }
 
     m_data.back()[t.m_lexeme] = o;

@@ -117,6 +117,19 @@ namespace halo
         void visit(StmtVisitor *v) override;
     };
 
+    struct ClassStmt : Stmt
+    {
+        Token m_name;
+        std::vector<std::unique_ptr<FunStmt>> m_methods;
+
+        ClassStmt(Token name, std::vector<std::unique_ptr<FunStmt>> methods)
+            : m_name(name), m_methods(std::move(methods))
+        {
+        }
+
+        void visit(StmtVisitor *v) override;
+    };
+
     struct StmtVisitor
     {
         virtual void visit_var_stmt(VarStmt *e) = 0;
@@ -128,5 +141,6 @@ namespace halo
         virtual void visit_continue_stmt([[maybe_unused]] ContinueStmt *e) = 0;
         virtual void visit_fun_stmt(FunStmt *e) = 0;
         virtual void visit_return_stmt(ReturnStmt *e) = 0;
+        virtual void visit_class_stmt(ClassStmt *e) = 0;
     };
 }

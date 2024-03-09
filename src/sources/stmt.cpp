@@ -47,3 +47,8 @@ void ReturnStmt::visit(StmtVisitor *v)
 {
     v->visit_return_stmt(this);
 }
+
+void ClassStmt::visit(StmtVisitor *v)
+{
+    v->visit_class_stmt(this);
+}

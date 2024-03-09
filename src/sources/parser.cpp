@@ -118,6 +118,11 @@ Stmt *Parser::statement()
         return return_statement();
     }
 
+    if (match(TokenType::Class))
+    {
+        return class_statement();
+    }
+
     return expression_statement();
     // throw runtime_error("unknown statement");
 }
@@ -333,6 +338,32 @@ Stmt *Parser::return_statement()
     consume(TokenType::Semicolon, "missing ; after return statement");
 
     return new ReturnStmt(exp);
+}
+
+Stmt *Parser::class_statement()
+{
+    if (!is_class_allowed())
+    {
+        throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": class can only be global");
+    }
+
+    m_scopes.push_back(Scopes::Class);
+
+    Token name = consume(TokenType::Identifier, "line " + to_string(m_tokens[m_curr].m_line) + ": missing class name");
+    consume(TokenType::Colon, "line " + to_string(name.m_line) + ": missing ':' in class " + name.m_lexeme);
+
+    vector<std::unique_ptr<FunStmt>> methods;
+
+    while (peek().m_type == TokenType::Identifier)
+    {
+        methods.emplace_back(static_cast<FunStmt *>(fun_statement()));
+    }
+
+    consume(TokenType::End, "line " + to_string(name.m_line) + ": missing end in class " + name.m_lexeme);
+
+    m_scopes.pop_back();
+
+    return new ClassStmt(name, move(methods));
 }
 
 /*
@@ -663,6 +694,11 @@ bool Parser::is_lambda_allowed() const
 {
     for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it)
     {
+        if (*it == Scopes::Fun)
+        {
+            return true;
+        }
+
         if (*it == Scopes::Lambda || *it == Scopes::Class)
         {
             return false;
@@ -670,4 +706,9 @@ bool Parser::is_lambda_allowed() const
     }
 
     return true;
+}
+
+bool Parser::is_class_allowed() const
+{
+    return m_scopes.empty();
 }

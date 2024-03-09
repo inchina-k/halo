@@ -39,6 +39,7 @@ namespace halo
         Stmt *continue_statement();
         Stmt *fun_statement();
         Stmt *return_statement();
+        Stmt *class_statement();
 
         Expr *expr();
         Expr *or_expr();
@@ -69,6 +70,7 @@ namespace halo
         bool is_in_callable() const;
         bool is_fun_allowed() const;
         bool is_lambda_allowed() const;
+        bool is_class_allowed() const;
 
     public:
         Parser(const std::vector<Token> &tokens)
