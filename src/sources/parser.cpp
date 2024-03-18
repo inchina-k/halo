@@ -275,9 +275,16 @@ Stmt *Parser::fun_statement()
         throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": fun must be global or a class member");
     }
 
-    m_scopes.push_back(Scopes::Fun);
-
     Token name = consume(TokenType::Identifier, "missing function name");
+
+    if (m_scopes.size() > 0 && m_scopes.back() == Scopes::Class && name.m_lexeme == "_init_")
+    {
+        m_scopes.push_back(Scopes::Init);
+    }
+    else
+    {
+        m_scopes.push_back(Scopes::Fun);
+    }
 
     consume(TokenType::OpenPar, "missing '(' in function " + name.m_lexeme);
     vector<Token> params;
@@ -332,6 +339,10 @@ Stmt *Parser::return_statement()
 
     if (peek().m_type != TokenType::Semicolon)
     {
+        if (is_constructor())
+        {
+            throw runtime_error("line " + to_string(m_tokens[m_curr - 1].m_line) + ": return statement must not return value in constructor");
+        }
         exp = expr();
     }
 
@@ -508,6 +519,41 @@ Expr *Parser::call()
     return callee;
 }
 
+Expr *Parser::primary()
+{
+    if (m_tokens[m_curr].m_type == TokenType::IntLiteral ||
+        m_tokens[m_curr].m_type == TokenType::FloatLiteral ||
+        m_tokens[m_curr].m_type == TokenType::True || m_tokens[m_curr].m_type == TokenType::False ||
+        m_tokens[m_curr].m_type == TokenType::StrLiteral ||
+        m_tokens[m_curr].m_type == TokenType::Null)
+    {
+        return alloc_literal(m_tokens[m_curr++]);
+    }
+    else if (match(TokenType::Lambda))
+    {
+        return lambda();
+    }
+    else if (m_tokens[m_curr].m_type == TokenType::Identifier)
+    {
+        return alloc_var(m_tokens[m_curr++]);
+    }
+    else if (m_tokens[m_curr].m_type == TokenType::OpenPar)
+    {
+        ++m_curr;
+        Expr *e = expr();
+
+        if (m_tokens[m_curr].m_type == TokenType::ClosePar)
+        {
+            ++m_curr;
+            return e;
+        }
+
+        throw runtime_error("Missing ')' for '('");
+    }
+
+    throw runtime_error("What am I, Why am I???");
+}
+
 Expr *Parser::lambda()
 {
     if (!is_lambda_allowed())
@@ -581,41 +627,6 @@ Expr *Parser::lambda()
     return alloc_lambda(capture, params, move(body));
 }
 
-Expr *Parser::primary()
-{
-    if (m_tokens[m_curr].m_type == TokenType::IntLiteral ||
-        m_tokens[m_curr].m_type == TokenType::FloatLiteral ||
-        m_tokens[m_curr].m_type == TokenType::True || m_tokens[m_curr].m_type == TokenType::False ||
-        m_tokens[m_curr].m_type == TokenType::StrLiteral ||
-        m_tokens[m_curr].m_type == TokenType::Null)
-    {
-        return alloc_literal(m_tokens[m_curr++]);
-    }
-    else if (match(TokenType::Lambda))
-    {
-        return lambda();
-    }
-    else if (m_tokens[m_curr].m_type == TokenType::Identifier)
-    {
-        return alloc_var(m_tokens[m_curr++]);
-    }
-    else if (m_tokens[m_curr].m_type == TokenType::OpenPar)
-    {
-        ++m_curr;
-        Expr *e = expr();
-
-        if (m_tokens[m_curr].m_type == TokenType::ClosePar)
-        {
-            ++m_curr;
-            return e;
-        }
-
-        throw runtime_error("Missing ')' for '('");
-    }
-
-    throw runtime_error("What am I, Why am I???");
-}
-
 bool Parser::match(TokenType t)
 {
     if (m_tokens[m_curr].m_type == t)
@@ -671,7 +682,7 @@ bool Parser::is_in_callable() const
 {
     for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it)
     {
-        if (*it == Scopes::Fun || *it == Scopes::Lambda)
+        if (*it == Scopes::Fun || *it == Scopes::Lambda || *it == Scopes::Init)
         {
             return true;
         }
@@ -679,6 +690,24 @@ bool Parser::is_in_callable() const
         if (*it == Scopes::Class)
         {
             return false;
+        }
+    }
+
+    return false;
+}
+
+bool Parser::is_constructor() const
+{
+    for (auto it = m_scopes.rbegin(); it != m_scopes.rend(); ++it)
+    {
+        if (*it == Scopes::Fun || *it == Scopes::Lambda || *it == Scopes::Class)
+        {
+            return false;
+        }
+
+        if (*it == Scopes::Init)
+        {
+            return true;
         }
     }
 

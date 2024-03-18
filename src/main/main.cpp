@@ -36,7 +36,7 @@ string to_str(Object *o)
     return !o ? "null"s : o->to_str();
 }
 
-void run(const string &c)
+void prompt(const string &c)
 {
     vector<string> errors;
 
@@ -90,38 +90,23 @@ void run(const string &c)
     }
 }
 
-// void run_expr(const string &c)
-// {
-//     try
-//     {
-//         Scanner scanner(c);
-//         auto t = scanner.scan();
+void script(const string &c)
+{
+    try
+    {
+        Scanner scanner(c);
+        auto t = scanner.scan();
 
-//         Parser parser(t);
+        Parser parser(t);
+        parser.parse();
 
-//         Expr *expr = parser.parse_expr();
-
-//         if (parser.had_errors())
-//         {
-//             cerr << "parse error" << endl;
-//         }
-//         else
-//         {
-//             try
-//             {
-//                 cout << to_str(interpreter.evaluate(expr)) << endl;
-//             }
-//             catch (const exception &e)
-//             {
-//                 cerr << e.what() << endl;
-//             }
-//         }
-//     }
-//     catch (const exception &e)
-//     {
-//         cerr << e.what() << endl;
-//     }
-// }
+        interpreter.execute(parser.statements());
+    }
+    catch (const exception &e)
+    {
+        cerr << e.what() << endl;
+    }
+}
 
 void run_prompt()
 {
@@ -129,7 +114,7 @@ void run_prompt()
 
     for (string line; getline(cin, line);)
     {
-        run(line);
+        prompt(line);
         cout << ":> ";
     }
 
@@ -146,8 +131,7 @@ void run_script(const string &file)
     }
     else
     {
-        // cout << copy_file(f) << endl;
-        run(copy_file(f));
+        script(copy_file(f));
     }
 }
 

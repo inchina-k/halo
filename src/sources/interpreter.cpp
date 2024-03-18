@@ -168,31 +168,49 @@ struct Class : Callable
 
     Object *call(const std::vector<Object *> &args) override
     {
-        // FunScope fc(interp->get_env());
-        // interp->inc_fun_scope_counter();
+        auto it = m_methods.find("_init_");
 
-        // for (size_t i = 0; i < args.size(); ++i)
-        // {
-        //     interp->get_env().define(m_fst->m_params[i], args[i]);
-        // }
+        if (it == m_methods.end())
+        {
+            return GC::instance().new_object(ObjectType::Object);
+        }
 
-        // try
-        // {
-        //     interp->execute(m_fst->m_body);
-        // }
-        // catch (const ReturnSignal &rs)
-        // {
-        //     interp->dec_fun_scope_counter();
-        //     return rs.m_res;
-        // }
+        Function *init = it->second;
 
-        // interp->dec_fun_scope_counter();
+        FunScope fc(interp->get_env());
+        interp->inc_fun_scope_counter();
+
+        Object *my = GC::instance().new_object(ObjectType::Object);
+        interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
+
+        for (size_t i = 0; i < args.size(); ++i)
+        {
+            interp->get_env().define(init->m_fst->m_params[i], args[i]);
+        }
+
+        try
+        {
+            interp->execute(init->m_fst->m_body);
+        }
+        catch (const ReturnSignal &rs)
+        {
+            interp->dec_fun_scope_counter();
+            return my;
+        }
+
+        interp->dec_fun_scope_counter();
         return nullptr;
     }
 
     int arity() const override
     {
-        return 0;
+        auto it = m_methods.find("_init_");
+        if (it == m_methods.end())
+        {
+            return 0;
+        }
+
+        return it->second->arity();
     }
 
     string to_str() const override

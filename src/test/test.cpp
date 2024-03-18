@@ -1688,4 +1688,87 @@ TEST_CASE("scripts")
 
         REQUIRE(s_out.str() == "<class Point>:\n\t_init_\n\tmethod\n");
     }
+
+    SUBCASE("037")
+    {
+        ifstream file("scripts/037.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "42\n"); // x should not be 42 but it is
+    }
+
+    SUBCASE("038")
+    {
+        ifstream file("scripts/038.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "hey\n");
+    }
+
+    SUBCASE("039")
+    {
+        ifstream file("scripts/039.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1, 2\n");
+    }
+
+    SUBCASE("041")
+    {
+        ifstream file("scripts/041.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 4: return statement must not return value in constructor\n");
+    }
+
+    SUBCASE("042")
+    {
+        ifstream file("scripts/042.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "42\n");
+    }
 }

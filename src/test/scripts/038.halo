@@ -1,0 +1,7 @@
+class T:
+    _init_():
+        println("hey");
+    end
+end
+
+var t = T();

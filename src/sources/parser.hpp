@@ -18,6 +18,7 @@ namespace halo
             While,
             For,
             Fun,
+            Init,
             Lambda,
             Class
         };
@@ -50,8 +51,8 @@ namespace halo
         Expr *factor();
         Expr *unary();
         Expr *call();
-        Expr *lambda();
         Expr *primary();
+        Expr *lambda();
 
         Expr *alloc_grouping(Expr *e);
         Expr *alloc_binary_expr(Token t, Expr *l, Expr *r);
@@ -68,6 +69,7 @@ namespace halo
         const Token &advance();
         bool is_in_loop() const;
         bool is_in_callable() const;
+        bool is_constructor() const;
         bool is_fun_allowed() const;
         bool is_lambda_allowed() const;
         bool is_class_allowed() const;
