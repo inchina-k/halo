@@ -29,6 +29,11 @@ Object *Call::visit(ExprVisitor *v)
     return v->visit_call_expr(this);
 }
 
+Object *Dot::visit(ExprVisitor *v)
+{
+    return v->visit_dot_expr(this);
+}
+
 Object *Literal::visit(ExprVisitor *v)
 {
     return v->visit_literal(this);

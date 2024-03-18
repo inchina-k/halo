@@ -11,13 +11,28 @@ namespace halo
 {
     struct Environment
     {
+        enum class ScopeType
+        {
+            Global,
+            General,
+            If,
+            While,
+            For,
+            Fun,
+            Init,
+            Capture,
+            Lambda,
+            Class
+        };
+
         std::vector<std::unordered_map<std::string, Object *>> m_data;
+        std::vector<ScopeType> m_scopes;
 
         void define(Token t, Object *o);
         void assign(Token t, Object *o);
         Object *get(Token t);
         std::pair<std::unordered_map<std::string, Object *>::iterator, bool> lookup(Token t);
-        void add_scope();
+        void add_scope(ScopeType st);
         void remove_scope();
         void swap_env(Environment &other);
     };

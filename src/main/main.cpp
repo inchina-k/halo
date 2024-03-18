@@ -14,6 +14,7 @@ void run_script(const string &s);
 string copy_file(ifstream &f);
 
 Interpreter interpreter;
+vector<unique_ptr<Parser>> parsers;
 
 int main(int argc, char *argv[])
 {
@@ -45,25 +46,27 @@ void prompt(const string &c)
         Scanner scanner(c);
         auto t = scanner.scan();
 
-        Parser parser(t);
+        parsers.emplace_back(make_unique<Parser>(t));
 
         try
         {
-            parser.parse();
+            parsers.back()->parse();
         }
         catch (const exception &e)
         {
             errors.push_back(e.what());
         }
 
-        if (parser.had_errors())
+        if (parsers.back()->had_errors())
         {
-            Parser parser_expr(t);
+            parsers.pop_back();
+            parsers.emplace_back(make_unique<Parser>(t));
+
             Expr *expr = nullptr;
 
             try
             {
-                expr = parser_expr.parse_expr();
+                expr = parsers.back()->parse_expr();
             }
             catch (const std::exception &e)
             {
@@ -72,8 +75,9 @@ void prompt(const string &c)
 
             if (errors.size() == 2)
             {
-                cerr << "error 1: " << errors[0] << endl;
-                cerr << "error 2: " << errors[1] << endl;
+                parsers.pop_back();
+                cerr << "Parse as stmt: " << errors[0] << endl;
+                cerr << "Parse as expr: " << errors[1] << endl;
                 return;
             }
 
@@ -81,7 +85,7 @@ void prompt(const string &c)
         }
         else
         {
-            interpreter.execute(parser.statements());
+            interpreter.execute(parsers.back()->statements());
         }
     }
     catch (const exception &e)

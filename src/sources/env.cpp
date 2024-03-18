@@ -39,30 +39,49 @@ Object *Environment::get(Token t)
 
 std::pair<std::unordered_map<std::string, Object *>::iterator, bool> Environment::lookup(Token t)
 {
-    for (auto it = m_data.rbegin(); it != m_data.rend(); ++it)
-    {
-        auto it2 = it->find(t.m_lexeme);
+    size_t i = m_scopes.size();
 
-        if (it2 != it->end())
+    while (i != 1)
+    {
+        --i;
+
+        auto it = m_data[i].find(t.m_lexeme);
+
+        if (it != m_data[i].end())
         {
-            return make_pair(it2, true);
+            return make_pair(it, true);
         }
+
+        if (m_scopes[i] == ScopeType::Fun || m_scopes[i] == ScopeType::Lambda)
+        {
+            break;
+        }
+    }
+
+    auto it = m_data[0].find(t.m_lexeme);
+
+    if (it != m_data[0].end())
+    {
+        return make_pair(it, true);
     }
 
     return make_pair(std::unordered_map<std::string, Object *>::iterator(), false);
 }
 
-void Environment::add_scope()
+void Environment::add_scope(ScopeType st)
 {
     m_data.emplace_back();
+    m_scopes.push_back(st);
 }
 
 void Environment::remove_scope()
 {
     m_data.pop_back();
+    m_scopes.pop_back();
 }
 
 void Environment::swap_env(Environment &other)
 {
     m_data.swap(other.m_data);
+    m_scopes.swap(other.m_scopes);
 }

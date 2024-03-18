@@ -66,6 +66,14 @@ namespace halo
             return nullptr;
         }
 
+        Object *visit_dot_expr(Dot *e) override
+        {
+            e->m_expr->visit(this);
+            m_data << "." << e->m_name.m_lexeme;
+
+            return nullptr;
+        }
+
         Object *visit_literal(Literal *e) override
         {
             m_data << e->m_token.m_lexeme;

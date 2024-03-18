@@ -1129,7 +1129,7 @@ TEST_CASE("interpreter")
     }
 }
 
-TEST_CASE("function calls")
+TEST_CASE("calls")
 {
     Printer ep;
 
@@ -1157,6 +1157,32 @@ TEST_CASE("function calls")
         e->visit(&ep);
 
         REQUIRE(ep.m_data.str() == "f(1)(2, 3)()");
+    }
+
+    SUBCASE("f().method()")
+    {
+        string s = "f().method()";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "f().method()");
+    }
+
+    SUBCASE("f().method(x, y).field")
+    {
+        string s = "f().method(x, y).field";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "f().method(x, y).field");
     }
 }
 
@@ -1702,9 +1728,8 @@ TEST_CASE("scripts")
         ostringstream s_out;
 
         Interpreter interp(s_in, s_out);
-        interp.execute(p.statements());
 
-        REQUIRE(s_out.str() == "42\n"); // x should not be 42 but it is
+        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "x name is not found\n");
     }
 
     SUBCASE("038")

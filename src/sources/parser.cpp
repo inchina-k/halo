@@ -37,6 +37,12 @@ Expr *Parser::alloc_call_expr(Expr *e, const std::vector<Expr *> &p)
     return m_nodes.back().get();
 }
 
+Expr *Parser::alloc_dot_expr(Expr *e, Token t)
+{
+    m_nodes.push_back(make_unique<Dot>(e, t));
+    return m_nodes.back().get();
+}
+
 Expr *Parser::alloc_literal(Token t)
 {
     m_nodes.push_back(make_unique<Literal>(t));
@@ -498,22 +504,34 @@ Expr *Parser::call()
 {
     Expr *callee = primary();
 
-    while (match(TokenType::OpenPar))
+    while (true)
     {
-        vector<Expr *> args;
-
-        if (peek().m_type != TokenType::ClosePar)
+        if (match(TokenType::OpenPar))
         {
-            do
+            vector<Expr *> args;
+
+            if (peek().m_type != TokenType::ClosePar)
             {
-                Expr *e = expr();
-                args.push_back(e);
+                do
+                {
+                    Expr *e = expr();
+                    args.push_back(e);
 
-            } while (match(TokenType::Comma));
+                } while (match(TokenType::Comma));
+            }
+
+            consume(TokenType::ClosePar, "expected ')'");
+            callee = alloc_call_expr(callee, args);
         }
-
-        consume(TokenType::ClosePar, "expected ')'");
-        callee = alloc_call_expr(callee, args);
+        else if (match(TokenType::Dot))
+        {
+            Token name = consume(TokenType::Identifier, "expected member name");
+            callee = alloc_dot_expr(callee, name);
+        }
+        else
+        {
+            break;
+        }
     }
 
     return callee;
@@ -551,7 +569,7 @@ Expr *Parser::primary()
         throw runtime_error("Missing ')' for '('");
     }
 
-    throw runtime_error("What am I, Why am I???");
+    throw runtime_error("What am I, Why am I??? I'm nothing in this statements world and neither I'm expression");
 }
 
 Expr *Parser::lambda()

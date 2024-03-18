@@ -124,6 +124,7 @@ namespace halo
         Object *visit_logical_expr(LogicalExpr *e) override;
         Object *visit_unary_expr(UnaryExpr *e) override;
         Object *visit_call_expr(Call *e) override;
+        Object *visit_dot_expr(Dot *e) override;
         Object *visit_literal(Literal *e) override;
         Object *visit_var(Var *e) override;
         Object *visit_lambda(Lambda *e) override;

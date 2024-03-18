@@ -83,6 +83,19 @@ namespace halo
         Object *visit(ExprVisitor *v) override;
     };
 
+    struct Dot : Expr
+    {
+        Expr *m_expr;
+        Token m_name;
+
+        Dot(Expr *e, Token t)
+            : m_expr(e), m_name(t)
+        {
+        }
+
+        Object *visit(ExprVisitor *v) override;
+    };
+
     struct Literal : Expr
     {
         Token m_token;
@@ -128,6 +141,7 @@ namespace halo
         virtual Object *visit_logical_expr(LogicalExpr *e) = 0;
         virtual Object *visit_unary_expr(UnaryExpr *e) = 0;
         virtual Object *visit_call_expr(Call *e) = 0;
+        virtual Object *visit_dot_expr(Dot *e) = 0;
         virtual Object *visit_literal(Literal *e) = 0;
         virtual Object *visit_var(Var *e) = 0;
         virtual Object *visit_lambda(Lambda *e) = 0;

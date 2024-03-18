@@ -11,10 +11,10 @@ struct Scope
 {
     Environment &m_env;
 
-    Scope(Environment &env)
+    Scope(Environment &env, Environment::ScopeType st)
         : m_env(env)
     {
-        m_env.add_scope();
+        m_env.add_scope(st);
     }
 
     ~Scope()
@@ -27,10 +27,10 @@ struct FunScope
 {
     Environment &m_env;
 
-    FunScope(Environment &env)
+    FunScope(Environment &env, Environment::ScopeType st)
         : m_env(env)
     {
-        m_env.add_scope();
+        m_env.add_scope(st);
     }
 
     ~FunScope()
@@ -66,7 +66,7 @@ struct Function : Callable
 
     Object *call(const std::vector<Object *> &args) override
     {
-        FunScope fc(interp->get_env());
+        FunScope fc(interp->get_env(), Environment::ScopeType::Fun);
         interp->inc_fun_scope_counter();
 
         for (size_t i = 0; i < args.size(); ++i)
@@ -105,37 +105,61 @@ struct LambdaFunction : Callable
     Lambda *m_l = nullptr;
     std::unordered_map<std::string, Object *> m_capture;
 
-    struct LambdaScope
-    {
-        Interpreter &m_interp;
-        LambdaFunction &m_lf;
-        Environment m_env;
+    // struct LambdaScope
+    // {
+    //     Interpreter &m_interp;
+    //     LambdaFunction &m_lf;
+    //     Environment m_env;
 
-        LambdaScope(Interpreter &interp, LambdaFunction &lf)
-            : m_interp(interp), m_lf(lf)
-        {
-            m_env.m_data.push_back(interp.get_env().m_data[0]);
-            m_env.m_data.push_back(lf.m_capture);
-            m_interp.get_env().swap_env(m_env);
-        }
+    //     LambdaScope(Interpreter &interp, LambdaFunction &lf)
+    //         : m_interp(interp), m_lf(lf)
+    //     {
+    //         m_env.m_data.push_back(interp.get_env().m_data[0]);
+    //         m_env.m_data.push_back(lf.m_capture);
+    //         m_interp.get_env().swap_env(m_env);
+    //     }
 
-        ~LambdaScope()
-        {
-            m_env.m_data[0] = m_interp.get_env().m_data[0];
-            m_lf.m_capture = m_interp.get_env().m_data[1];
-            m_interp.get_env().swap_env(m_env);
-        }
-    };
+    //     ~LambdaScope()
+    //     {
+    //         m_env.m_data[0] = m_interp.get_env().m_data[0];
+    //         m_lf.m_capture = m_interp.get_env().m_data[1];
+    //         m_interp.get_env().swap_env(m_env);
+    //     }
+    // };
 
     Object *call(const std::vector<Object *> &args) override
     {
-        LambdaScope lscope(*m_interp, *this);
-        m_interp->get_env().m_data.emplace_back();
+        // LambdaScope lscope(*m_interp, *this);
+        // m_interp->get_env().m_data.emplace_back();
+        // m_interp->get_env().m_scopes.push_back(Environment::ScopeType::Lambda);
 
+        // for (size_t i = 0; i < args.size(); ++i)
+        // {
+        //     m_interp->get_env().define(m_l->m_params[i], args[i]);
+        // }
+
+        // try
+        // {
+        //     m_interp->execute(m_l->m_body);
+        // }
+        // catch (const ReturnSignal &rs)
+        // {
+        //     return rs.m_res;
+        // }
+
+        FunScope fc(m_interp->get_env(), Environment::ScopeType::Lambda);
+        m_interp->inc_fun_scope_counter();
         for (size_t i = 0; i < args.size(); ++i)
         {
             m_interp->get_env().define(m_l->m_params[i], args[i]);
         }
+
+        FunScope fc2(m_interp->get_env(), Environment::ScopeType::Capture);
+        m_interp->get_env().m_data.back() = move(m_capture);
+        // for (const auto &[k, v] : m_capture)
+        // {
+        //     m_interp->get_env().define(Token(TokenType::Identifier, k, 0, 0), v);
+        // }
 
         try
         {
@@ -143,8 +167,12 @@ struct LambdaFunction : Callable
         }
         catch (const ReturnSignal &rs)
         {
+            m_capture = move(m_interp->get_env().m_data.back());
+            m_interp->dec_fun_scope_counter();
             return rs.m_res;
         }
+        m_capture = move(m_interp->get_env().m_data.back());
+        m_interp->dec_fun_scope_counter();
 
         return nullptr;
     }
@@ -177,7 +205,7 @@ struct Class : Callable
 
         Function *init = it->second;
 
-        FunScope fc(interp->get_env());
+        FunScope fc(interp->get_env(), Environment::ScopeType::Fun); // fun _init_
         interp->inc_fun_scope_counter();
 
         Object *my = GC::instance().new_object(ObjectType::Object);
@@ -365,7 +393,7 @@ struct ToStr : Callable
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
 {
-    m_env.add_scope();
+    m_env.add_scope(Environment::ScopeType::Global);
 
     PrintLine *pl = static_cast<PrintLine *>(GC::instance().new_object<PrintLine>());
     pl->interp = this;
@@ -641,6 +669,11 @@ Object *Interpreter::visit_call_expr(Call *e)
     return c->call(args);
 }
 
+Object *Interpreter::visit_dot_expr(Dot *e)
+{
+    return nullptr;
+}
+
 Object *Interpreter::visit_literal(Literal *e)
 {
     if (e->m_val)
@@ -752,7 +785,7 @@ void Interpreter::visit_if_stmt(IfStmt *e)
 
         if (is_true(o))
         {
-            Scope s(m_env);
+            Scope s(m_env, Environment::ScopeType::If);
             execute(e->m_then_branches[i]);
             return;
         }
@@ -760,7 +793,7 @@ void Interpreter::visit_if_stmt(IfStmt *e)
 
     if (!e->m_else_branch.empty())
     {
-        Scope s(m_env);
+        Scope s(m_env, Environment::ScopeType::If);
         execute(e->m_else_branch);
     }
 }
@@ -773,7 +806,7 @@ void Interpreter::visit_while_stmt(WhileStmt *e)
         {
             try
             {
-                Scope s(m_env);
+                Scope s(m_env, Environment::ScopeType::While);
                 execute(e->m_do_branch);
             }
             catch (ContinueSignal)
