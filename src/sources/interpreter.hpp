@@ -99,13 +99,13 @@ namespace halo
             return m_out;
         }
 
-        void inc_fun_scope_counter()
+        void inc_fun_scope_counter(size_t line)
         {
             ++m_fun_scope_counter;
 
             if (m_fun_scope_counter > m_max_fun_depth)
             {
-                throw std::runtime_error("max fun depth exceeded: " + std::to_string(m_max_fun_depth));
+                throw std::runtime_error("Execution error\nline " + std::to_string(line) + ": <callable> max function depth exceeded '" + std::to_string(m_max_fun_depth) + "'");
             }
         }
 

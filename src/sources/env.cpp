@@ -7,7 +7,7 @@ void Environment::define(Token t, Object *o)
 {
     if (m_data.back().find(t.m_lexeme) != m_data.back().end())
     {
-        throw runtime_error(t.m_lexeme + " var is defined already");
+        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": name '" + t.m_lexeme + "' is defined already");
     }
 
     m_data.back()[t.m_lexeme] = o;
@@ -19,7 +19,7 @@ void Environment::assign(Token t, Object *o)
 
     if (!p.second)
     {
-        throw runtime_error(t.m_lexeme + " var is not defined");
+        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": name '" + t.m_lexeme + "' is not defined");
     }
 
     p.first->second = o;
@@ -31,7 +31,7 @@ Object *Environment::get(Token t)
 
     if (!p.second)
     {
-        throw runtime_error(t.m_lexeme + " name is not found");
+        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": name '" + t.m_lexeme + "' is not found");
     }
 
     return p.first->second;

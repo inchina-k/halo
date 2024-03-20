@@ -67,7 +67,7 @@ struct Function : Callable
     Object *call(const std::vector<Object *> &args) override
     {
         FunScope fc(interp->get_env(), Environment::ScopeType::Fun);
-        interp->inc_fun_scope_counter();
+        interp->inc_fun_scope_counter(m_fst->m_name.m_line);
 
         for (size_t i = 0; i < args.size(); ++i)
         {
@@ -148,7 +148,7 @@ struct LambdaFunction : Callable
         // }
 
         FunScope fc(m_interp->get_env(), Environment::ScopeType::Lambda);
-        m_interp->inc_fun_scope_counter();
+        m_interp->inc_fun_scope_counter(0);
         for (size_t i = 0; i < args.size(); ++i)
         {
             m_interp->get_env().define(m_l->m_params[i], args[i]);
@@ -206,7 +206,7 @@ struct Class : Callable
         Function *init = it->second;
 
         FunScope fc(interp->get_env(), Environment::ScopeType::Fun); // fun _init_
-        interp->inc_fun_scope_counter();
+        interp->inc_fun_scope_counter(init->m_fst->m_name.m_line);
 
         Object *my = GC::instance().new_object(ObjectType::Object);
         interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
@@ -472,7 +472,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::Minus:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, minus<long long>()))
         {
@@ -486,7 +486,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::Mul:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, multiplies<long long>()))
         {
@@ -500,7 +500,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::Div:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, divides<long long>()))
         {
@@ -514,13 +514,13 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::Mod:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, modulus<long long>()))
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::Less:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, less<long long>()))
         {
@@ -534,7 +534,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::LessEqual:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, less_equal<long long>()))
         {
@@ -548,7 +548,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::Greater:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, greater<long long>()))
         {
@@ -562,7 +562,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::GreaterEqual:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, greater_equal<long long>()))
         {
@@ -576,7 +576,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand types for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
     case TokenType::EqualEqual:
     {
         Object *r = GC::instance().new_object(ObjectType::Bool);
@@ -590,7 +590,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         return r;
     }
     default:
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": unknown operation '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> unknown operator '" + e->m_token.m_lexeme + "'");
     }
 }
 
@@ -636,10 +636,10 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
             static_cast<Float *>(r)->m_val = -f->m_val;
             return r;
         }
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <unary expression> incorrect operand type for '" + e->m_token.m_lexeme + "' operator");
 
     default:
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": incorrect operand for '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <unary expression> incorrect operand type for '" + e->m_token.m_lexeme + "' operator");
     }
 }
 
@@ -651,12 +651,12 @@ Object *Interpreter::visit_call_expr(Call *e)
 
     if (!c)
     {
-        throw runtime_error(o->to_str() + " is not a function or lambda");
+        throw runtime_error("Execution error\n<call expression> '" + o->to_str() + "' is not a function or lambda");
     }
 
     if (c->arity() != int(e->m_args.size()))
     {
-        throw runtime_error(c->to_str() + ": incorrect number of args");
+        throw runtime_error("Execution error\n<call expression> incorrect number of arguments for '" + c->to_str() + "'");
     }
 
     vector<Object *> args;
@@ -711,7 +711,7 @@ Object *Interpreter::visit_literal(Literal *e)
         return o;
     }
     default:
-        throw runtime_error("line " + to_string(e->m_token.m_line) + ": unknown literal '" + e->m_token.m_lexeme + "'");
+        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <literal> unknown literal '" + e->m_token.m_lexeme + "'");
     }
 }
 
@@ -858,7 +858,7 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
         fn->m_fst = f.get();
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
         {
-            throw runtime_error("class " + cl->m_cst->m_name.m_lexeme + ": " + fn->m_fst->m_name.m_lexeme + " method is defined already");
+            throw runtime_error("Execution error\nline " + to_string(fn->m_fst->m_name.m_line) + ": <class statement> duplicate method '" + fn->m_fst->m_name.m_lexeme + "' in class '" + cl->m_cst->m_name.m_lexeme + "'");
         }
         cl->m_methods.emplace(fn->m_fst->m_name.m_lexeme, fn);
     }

@@ -801,7 +801,7 @@ TEST_CASE("interpreter")
         Expr *e = p.parse_expr();
 
         Interpreter interpreter;
-        REQUIRE_THROWS_WITH(interpreter.evaluate(e), "line 1: incorrect operand types for '+'");
+        REQUIRE_THROWS_WITH(interpreter.evaluate(e), "Execution error\nline 1: <binary expression> incorrect operand types for '+' operator");
     }
 
     SUBCASE("20 / 3")
@@ -839,7 +839,7 @@ TEST_CASE("interpreter")
         Expr *e = p.parse_expr();
 
         Interpreter interpreter;
-        REQUIRE_THROWS_WITH(interpreter.evaluate(e), "line 2: incorrect operand types for '%'");
+        REQUIRE_THROWS_WITH(interpreter.evaluate(e), "Execution error\nline 2: <binary expression> incorrect operand types for '%' operator");
     }
 
     SUBCASE("2 < 3")
@@ -1448,7 +1448,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: return statement out of function");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <return statement> out of function");
     }
 
     SUBCASE("020")
@@ -1459,7 +1459,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: break statement out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <break statement> out of loop");
     }
 
     SUBCASE("021")
@@ -1470,7 +1470,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: continue statement out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <continue statement> out of loop");
     }
 
     SUBCASE("022")
@@ -1487,7 +1487,7 @@ TEST_CASE("scripts")
 
         Interpreter interp(s_in, s_out);
 
-        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "max fun depth exceeded: 1024");
+        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "Execution error\nline 2: <callable> max function depth exceeded '1024'");
     }
 
     SUBCASE("023")
@@ -1643,7 +1643,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 2: break statement out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 2: <break statement> out of loop");
     }
 
     SUBCASE("032")
@@ -1654,7 +1654,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 2: continue statement out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 2: <continue statement> out of loop");
     }
 
     SUBCASE("033")
@@ -1665,7 +1665,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 2: fun must be global or a class member");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 2: <fun statement> must be global or a class member");
     }
 
     SUBCASE("034")
@@ -1676,7 +1676,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 1: lambda cannot be used in another lambda or as a class member");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <lambda expression> cannot be used in another lambda or as a class member");
     }
 
     SUBCASE("035")
@@ -1729,7 +1729,7 @@ TEST_CASE("scripts")
 
         Interpreter interp(s_in, s_out);
 
-        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "x name is not found\n");
+        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "Execution error\nline 2: name 'x' is not found");
     }
 
     SUBCASE("038")
@@ -1776,7 +1776,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "line 4: return statement must not return value in constructor\n");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 4: <return statement> must not have return value in constructor");
     }
 
     SUBCASE("042")
