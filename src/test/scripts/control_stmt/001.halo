@@ -1,0 +1,15 @@
+var a = to_int(readln());
+var msg;
+
+if a >= 150:
+    let msg = "still alive?";
+elif a >= 90:
+    let msg = "watch your health";
+elif a >= 21:
+    let msg = "enjoy your happy hour!";
+else:
+    let msg = "grow up, baby";
+end
+
+println(msg);
+println("you're " + to_str(a) + "!!!");

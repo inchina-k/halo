@@ -1,8 +1,0 @@
-fun f():
-    println(x);
-end
-
-if true:
-    var x = 42;
-    f();
-end

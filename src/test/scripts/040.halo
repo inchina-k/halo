@@ -1,7 +1,0 @@
-class T:
-    _init_(x, y):
-        println(to_str(x) + ", " + to_str(y));
-    end
-end
-
-var t = T(1, 2, 3);

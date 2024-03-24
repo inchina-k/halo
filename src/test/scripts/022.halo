@@ -1,5 +1,0 @@
-fun max_depth_fun():
-    max_depth_fun();
-end
-
-max_depth_fun();

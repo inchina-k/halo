@@ -1,0 +1,5 @@
+fun _init_():
+    return 42;
+end
+
+println(_init_());

@@ -1,3 +1,0 @@
-var l = lambda(x, y): return x * y; end; 
-var r = l(2, 3);
-print(r);

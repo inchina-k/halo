@@ -1,0 +1,10 @@
+var x = 0;
+
+class T:
+    fun _init_():
+        let x = 100;
+    end
+end
+
+var t = T();
+println(x);

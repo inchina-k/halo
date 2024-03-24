@@ -1,5 +1,0 @@
-var i = to_int("10");
-var f = to_float("10.5");
-var s = to_str(10.000000);
-
-println(to_str(i) + ", " + to_str(f) + ", " + s);

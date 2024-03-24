@@ -1,7 +1,0 @@
-var x = 87868.9;
-
-class T:
-    _init_():
-        let x = 100;
-    end
-end

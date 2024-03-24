@@ -1,8 +1,0 @@
-var n = readln();
-
-fun say_hello_to(name):
-    println("hello, " + name);
-end
-
-var b = say_hello_to(n);
-println(b);

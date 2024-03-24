@@ -1,0 +1,22 @@
+var g = 5;
+
+fun main():
+    println(g);
+    
+    var x = 1;
+
+    var f = lambda[x]():
+        let x = x + 1;
+        let g = g - 1;
+        println(x);
+    end;
+
+    f();
+    f();
+    f();
+
+    println(x);
+    println(g);
+end
+
+main();

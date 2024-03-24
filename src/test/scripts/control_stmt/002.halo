@@ -1,0 +1,6 @@
+var a = 10;
+
+while a > 0:
+    println(a);
+    let a = a - 1;
+end

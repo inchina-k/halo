@@ -1,0 +1,16 @@
+class Point:
+    var x;
+	var y;
+
+    fun _init_(x, y):
+        let my.y = 0;
+    end
+	
+    fun dist(other):  
+        return 0;
+    end
+end
+
+var p = Point(1, 2);
+let p.x = 42;
+println(to_str(p));
