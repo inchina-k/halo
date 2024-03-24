@@ -4,6 +4,8 @@
 
 #include <vector>
 #include <memory>
+#include <string>
+#include <set>
 
 namespace halo
 {
@@ -31,11 +33,11 @@ namespace halo
 
     struct AssignmentStmt : Stmt
     {
-        Token m_token;
+        Expr *m_lval;
         Expr *m_expr;
 
-        AssignmentStmt(Token t, Expr *e)
-            : m_token(t), m_expr(e)
+        AssignmentStmt(Expr *lv, Expr *e)
+            : m_lval(lv), m_expr(e)
         {
         }
 
@@ -120,10 +122,11 @@ namespace halo
     struct ClassStmt : Stmt
     {
         Token m_name;
+        std::set<std::string> m_fields;
         std::vector<std::unique_ptr<FunStmt>> m_methods;
 
-        ClassStmt(Token name, std::vector<std::unique_ptr<FunStmt>> methods)
-            : m_name(name), m_methods(std::move(methods))
+        ClassStmt(Token name, const std::set<std::string> &fields, std::vector<std::unique_ptr<FunStmt>> methods)
+            : m_name(name), m_fields(fields), m_methods(std::move(methods))
         {
         }
 

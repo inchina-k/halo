@@ -196,11 +196,18 @@ struct Class : Callable
 
     Object *call(const std::vector<Object *> &args) override
     {
+        auto my = GC::instance().new_object(ObjectType::Object);
+
+        for (auto &f : m_cst->m_fields)
+        {
+            my->m_fields.emplace(f, nullptr);
+        }
+
         auto it = m_methods.find("_init_");
 
         if (it == m_methods.end())
         {
-            return GC::instance().new_object(ObjectType::Object);
+            return my;
         }
 
         Function *init = it->second;
@@ -208,7 +215,6 @@ struct Class : Callable
         FunScope fc(interp->get_env(), Environment::ScopeType::Fun); // fun _init_
         interp->inc_fun_scope_counter(init->m_fst->m_name.m_line);
 
-        Object *my = GC::instance().new_object(ObjectType::Object);
         interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
 
         for (size_t i = 0; i < args.size(); ++i)
@@ -227,7 +233,7 @@ struct Class : Callable
         }
 
         interp->dec_fun_scope_counter();
-        return nullptr;
+        return my;
     }
 
     int arity() const override
@@ -769,7 +775,19 @@ void Interpreter::visit_var_stmt(VarStmt *e)
 
 void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
 {
-    m_env.assign(e->m_token, evaluate(e->m_expr));
+    if (auto p = dynamic_cast<Var *>(e->m_lval))
+    {
+        m_env.assign(p->m_token, evaluate(e->m_expr));
+        return;
+    }
+    if (auto p2 = dynamic_cast<Dot *>(e->m_lval))
+    {
+        Object *o = evaluate(p2->m_expr);
+        o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
+        return;
+    }
+
+    throw runtime_error("Execution error\n<assignment statement> can be used only with variables or object fields");
 }
 
 void Interpreter::visit_expression_stmt(ExpressionStmt *e)

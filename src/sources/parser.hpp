@@ -51,7 +51,6 @@ namespace halo
         Expr *factor();
         Expr *unary();
         Expr *call();
-        Expr *dot();
         Expr *primary();
         Expr *lambda();
 

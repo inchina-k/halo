@@ -3,12 +3,14 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <map>
 
 namespace halo
 {
-    class Object
+    struct Object
     {
-    public:
+        std::map<std::string, Object *> m_fields;
+
         Object()
         {
         }
@@ -19,7 +21,33 @@ namespace halo
 
         virtual std::string to_str() const
         {
-            return "Object";
+            std::string res = "Object[";
+            bool first = true;
+
+            for (auto field : m_fields)
+            {
+                res += first ? "" : ", ";
+                res += field.first;
+                res += "=";
+                res += field.second ? field.second->to_str() : "null";
+                first = false;
+            }
+
+            res += "]";
+
+            return res;
+        }
+
+        void set_field(std::string name, Object *val)
+        {
+            auto it = m_fields.find(name);
+
+            if (it == m_fields.end())
+            {
+                throw std::runtime_error("Execution error\nfield '" + name + "' is not found");
+            }
+
+            it->second = val;
         }
 
         virtual bool equals(Object *other) const

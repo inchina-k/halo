@@ -151,14 +151,21 @@ Stmt *Parser::var_statement()
 
 Stmt *Parser::assignment_statement()
 {
-    Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected variable name");
-    consume(TokenType::Equal, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected '=' symbol");
+    // Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected variable name");
+    Expr *lval = call();
+    auto p = dynamic_cast<Var *>(lval);
+    auto p2 = dynamic_cast<Dot *>(lval);
 
-    Expr *e = expr();
+    if (p || p2)
+    {
+        consume(TokenType::Equal, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected '=' symbol");
+        Expr *e = expr();
+        consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected ';' symbol");
 
-    consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected ';' symbol");
+        return new AssignmentStmt(lval, e);
+    }
 
-    return new AssignmentStmt(name, e);
+    throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> can be used only with variables or object fields");
 }
 
 Stmt *Parser::expression_statement()
@@ -369,18 +376,32 @@ Stmt *Parser::class_statement()
     Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected class name");
     consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected ':' symbol in class '" + name.m_lexeme + "'");
 
-    vector<std::unique_ptr<FunStmt>> methods;
+    set<string> fields;
+    vector<unique_ptr<FunStmt>> methods;
 
-    while (peek().m_type == TokenType::Identifier)
+    while (true)
     {
-        methods.emplace_back(static_cast<FunStmt *>(fun_statement()));
+        if (match(TokenType::Var))
+        {
+            Token field = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected variable name");
+            consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected ';' symbol");
+            fields.insert(field.m_lexeme);
+        }
+        else if (match(TokenType::Fun))
+        {
+            methods.emplace_back(static_cast<FunStmt *>(fun_statement()));
+        }
+        else
+        {
+            break;
+        }
     }
 
     consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> missing end of class '" + name.m_lexeme + "'");
 
     m_scopes.pop_back();
 
-    return new ClassStmt(name, move(methods));
+    return new ClassStmt(name, fields, move(methods));
 }
 
 /*

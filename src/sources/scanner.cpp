@@ -12,6 +12,7 @@ std::vector<Token> Scanner::scan()
         switch (m_data[m_start])
         {
         case ' ':
+        case '\t':
             ++m_start;
             ++m_curr;
             ++m_offset;
