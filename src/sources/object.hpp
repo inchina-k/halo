@@ -7,11 +7,15 @@
 
 namespace halo
 {
+    struct ClassBase;
+
     struct Object
     {
+        ClassBase *m_type;
         std::map<std::string, Object *> m_fields;
 
-        Object()
+        Object(ClassBase *type = nullptr)
+            : m_type(type)
         {
         }
 
@@ -44,7 +48,7 @@ namespace halo
 
             if (it == m_fields.end())
             {
-                throw std::runtime_error("Execution error\nfield '" + name + "' is not found");
+                throw std::runtime_error("Execution error\nfield '" + name + "' is not defined");
             }
 
             it->second = val;
@@ -56,11 +60,13 @@ namespace halo
 
             if (it == m_fields.end())
             {
-                throw std::runtime_error("Execution error\nfield '" + name + "' is not found");
+                throw std::runtime_error("Execution error\nfield '" + name + "' is not defined");
             }
 
             return it->second;
         }
+
+        Object *call_method(const std::string &name, const std::vector<Object *> &args);
 
         virtual bool equals(Object *other) const
         {
@@ -73,7 +79,7 @@ namespace halo
         long long m_val;
 
         Int()
-            : m_val(0)
+            : Object(nullptr), m_val(0)
         {
         }
 
@@ -97,7 +103,7 @@ namespace halo
         double m_val;
 
         Float()
-            : m_val(0)
+            : Object(nullptr), m_val(0)
         {
         }
 
@@ -121,7 +127,7 @@ namespace halo
         bool m_val;
 
         Bool()
-            : m_val(0)
+            : Object(nullptr), m_val(0)
         {
         }
 
@@ -144,6 +150,11 @@ namespace halo
     {
         std::string m_val;
 
+        String()
+            : Object(nullptr)
+        {
+        }
+
         std::string to_str() const override;
 
         bool equals(Object *other) const override
@@ -162,6 +173,7 @@ namespace halo
     struct Callable : Object
     {
         Callable()
+            : Object(nullptr)
         {
         }
 
@@ -176,8 +188,18 @@ namespace halo
         }
     };
 
+    struct ClassBase : Callable
+    {
+        virtual Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) = 0;
+    };
+
     struct Null : Object
     {
+        Null()
+            : Object(nullptr)
+        {
+        }
+
         std::string to_str() const override;
 
         bool equals(Object *other) const override

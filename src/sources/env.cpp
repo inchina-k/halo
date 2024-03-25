@@ -31,7 +31,7 @@ Object *Environment::get(Token t)
 
     if (!p.second)
     {
-        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": name '" + t.m_lexeme + "' is not found");
+        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": name '" + t.m_lexeme + "' is not defined");
     }
 
     return p.first->second;

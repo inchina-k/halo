@@ -27,3 +27,8 @@ string Null::to_str() const
 {
     return "null";
 }
+
+Object *Object::call_method(const std::string &name, const std::vector<Object *> &args)
+{
+    return m_type->call_method(this, name, args);
+}

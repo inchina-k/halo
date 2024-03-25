@@ -61,30 +61,30 @@ struct ReturnSignal
 
 struct Function : Callable
 {
-    Interpreter *interp = nullptr;
+    Interpreter *m_interp = nullptr;
     FunStmt *m_fst = nullptr;
 
     Object *call(const std::vector<Object *> &args) override
     {
-        FunScope fc(interp->get_env(), Environment::ScopeType::Fun);
-        interp->inc_fun_scope_counter(m_fst->m_name.m_line);
+        FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun);
+        m_interp->inc_fun_scope_counter(m_fst->m_name.m_line);
 
         for (size_t i = 0; i < args.size(); ++i)
         {
-            interp->get_env().define(m_fst->m_params[i], args[i]);
+            m_interp->get_env().define(m_fst->m_params[i], args[i]);
         }
 
         try
         {
-            interp->execute(m_fst->m_body);
+            m_interp->execute(m_fst->m_body);
         }
         catch (const ReturnSignal &rs)
         {
-            interp->dec_fun_scope_counter();
+            m_interp->dec_fun_scope_counter();
             return rs.m_res;
         }
 
-        interp->dec_fun_scope_counter();
+        m_interp->dec_fun_scope_counter();
         return nullptr;
     }
 
@@ -188,15 +188,16 @@ struct LambdaFunction : Callable
     }
 };
 
-struct Class : Callable
+struct Class : ClassBase
 {
-    Interpreter *interp = nullptr;
+    Interpreter *m_interp = nullptr;
     ClassStmt *m_cst = nullptr;
     unordered_map<string, Function *> m_methods;
 
     Object *call(const std::vector<Object *> &args) override
     {
         auto my = GC::instance().new_object(ObjectType::Object);
+        my->m_type = this;
 
         for (auto &f : m_cst->m_fields)
         {
@@ -212,28 +213,68 @@ struct Class : Callable
 
         Function *init = it->second;
 
-        FunScope fc(interp->get_env(), Environment::ScopeType::Fun); // fun _init_
-        interp->inc_fun_scope_counter(init->m_fst->m_name.m_line);
+        FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun); // fun _init_
+        m_interp->inc_fun_scope_counter(init->m_fst->m_name.m_line);
 
-        interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
+        m_interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
 
         for (size_t i = 0; i < args.size(); ++i)
         {
-            interp->get_env().define(init->m_fst->m_params[i], args[i]);
+            m_interp->get_env().define(init->m_fst->m_params[i], args[i]);
         }
 
         try
         {
-            interp->execute(init->m_fst->m_body);
+            m_interp->execute(init->m_fst->m_body);
         }
         catch (const ReturnSignal &rs)
         {
-            interp->dec_fun_scope_counter();
+            m_interp->dec_fun_scope_counter();
             return my;
         }
 
-        interp->dec_fun_scope_counter();
+        m_interp->dec_fun_scope_counter();
         return my;
+    }
+
+    Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override
+    {
+        auto it = m_methods.find(name);
+
+        if (it == m_methods.end())
+        {
+            throw runtime_error("Execution error\nname '" + name + "' is not defined");
+        }
+
+        Function *method = it->second;
+
+        if (method->arity() != int(args.size()))
+        {
+            throw runtime_error("Execution error\n<call expression> incorrect number of arguments for '" + method->to_str() + "'");
+        }
+
+        FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun);
+        m_interp->inc_fun_scope_counter(method->m_fst->m_name.m_line);
+
+        m_interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
+
+        for (size_t i = 0; i < args.size(); ++i)
+        {
+            m_interp->get_env().define(method->m_fst->m_params[i], args[i]);
+        }
+
+        try
+        {
+            m_interp->execute(method->m_fst->m_body);
+        }
+        catch (const ReturnSignal &rs)
+        {
+            m_interp->dec_fun_scope_counter();
+            return rs.m_res;
+        }
+
+        m_interp->dec_fun_scope_counter();
+        return nullptr;
     }
 
     int arity() const override
@@ -651,6 +692,20 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
 
 Object *Interpreter::visit_call_expr(Call *e)
 {
+    if (auto p = dynamic_cast<Dot *>(e->m_expr))
+    {
+        Object *o = evaluate(p->m_expr);
+
+        vector<Object *> args;
+
+        for (auto arg : e->m_args)
+        {
+            args.push_back(evaluate(arg));
+        }
+
+        return o->call_method(p->m_name.m_lexeme, args);
+    }
+
     Object *o = evaluate(e->m_expr);
 
     Callable *c = dynamic_cast<Callable *>(o);
@@ -853,7 +908,7 @@ void Interpreter::visit_continue_stmt([[maybe_unused]] ContinueStmt *e)
 void Interpreter::visit_fun_stmt(FunStmt *e)
 {
     Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
-    fn->interp = this;
+    fn->m_interp = this;
     fn->m_fst = e;
     m_env.define(Token(TokenType::Var, fn->m_fst->m_name.m_lexeme, 0, 0), fn);
 }
@@ -867,13 +922,13 @@ void Interpreter::visit_return_stmt(ReturnStmt *e)
 void Interpreter::visit_class_stmt(ClassStmt *e)
 {
     Class *cl = static_cast<Class *>(GC::instance().new_object<Class>());
-    cl->interp = this;
+    cl->m_interp = this;
     cl->m_cst = e;
 
     for (const auto &f : e->m_methods)
     {
         Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
-        fn->interp = this;
+        fn->m_interp = this;
         fn->m_fst = f.get();
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
         {

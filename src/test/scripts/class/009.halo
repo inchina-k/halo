@@ -1,0 +1,16 @@
+class Point:
+    var x;
+	var y;
+
+    fun _init_(x, y):
+        let my.x = x;
+        let my.y = y;
+    end
+	
+    fun sqr_sum():  
+        return my.x * my.x + my.y * my.y;
+    end
+end
+
+var p = Point(3, 4);
+println(p.sqr_sum());

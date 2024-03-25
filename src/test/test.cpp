@@ -1841,4 +1841,39 @@ TEST_CASE("scripts")
 
         REQUIRE(s_out.str() == "Object[x=1, y=2]\nObject[x=42, y=2]\n44\n");
     }
+
+    SUBCASE("class/009")
+    {
+        ifstream file("scripts/class/009.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "25\n");
+    }
+
+    SUBCASE("class/010")
+    {
+        ifstream file("scripts/class/010.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "Execution error\nline 11: name 'x' is not defined");
+    }
 }

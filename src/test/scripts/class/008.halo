@@ -6,10 +6,6 @@ class Point:
         let my.x = x;
         let my.y = y;
     end
-	
-    fun dist_sqr(other):  
-        return my.x;
-    end
 end
 
 var p = Point(1, 2);
