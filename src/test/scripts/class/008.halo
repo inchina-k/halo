@@ -3,14 +3,19 @@ class Point:
 	var y;
 
     fun _init_(x, y):
-        let my.y = 0;
+        let my.x = x;
+        let my.y = y;
     end
 	
-    fun dist(other):  
-        return 0;
+    fun dist_sqr(other):  
+        return my.x;
     end
 end
 
 var p = Point(1, 2);
+println(to_str(p));
+
 let p.x = 42;
 println(to_str(p));
+
+println(p.x + p.y);

@@ -677,7 +677,8 @@ Object *Interpreter::visit_call_expr(Call *e)
 
 Object *Interpreter::visit_dot_expr(Dot *e)
 {
-    return nullptr;
+    Object *o = evaluate(e->m_expr);
+    return o->get_field(e->m_name.m_lexeme);
 }
 
 Object *Interpreter::visit_literal(Literal *e)

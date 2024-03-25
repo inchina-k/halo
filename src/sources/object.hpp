@@ -38,7 +38,7 @@ namespace halo
             return res;
         }
 
-        void set_field(std::string name, Object *val)
+        void set_field(const std::string &name, Object *val)
         {
             auto it = m_fields.find(name);
 
@@ -48,6 +48,18 @@ namespace halo
             }
 
             it->second = val;
+        }
+
+        Object *get_field(const std::string &name)
+        {
+            auto it = m_fields.find(name);
+
+            if (it == m_fields.end())
+            {
+                throw std::runtime_error("Execution error\nfield '" + name + "' is not found");
+            }
+
+            return it->second;
         }
 
         virtual bool equals(Object *other) const

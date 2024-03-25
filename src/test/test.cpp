@@ -1839,6 +1839,6 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
         interp.execute(p.statements());
 
-        REQUIRE(s_out.str() == "Object[x=42, y=0]\n");
+        REQUIRE(s_out.str() == "Object[x=1, y=2]\nObject[x=42, y=2]\n44\n");
     }
 }
