@@ -437,6 +437,58 @@ struct ToStr : Callable
     }
 };
 
+struct GetRecursionDepth : Callable
+{
+    Interpreter *interp = nullptr;
+
+    Object *call([[maybe_unused]] const std::vector<Object *> &args) override
+    {
+        interp->get_out() << interp->get_recursion_depth() << endl;
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return 0;
+    }
+
+    string to_str() const override
+    {
+        return "get_recursion_depth";
+    }
+};
+
+struct SetRecursionDepth : Callable
+{
+    Interpreter *interp = nullptr;
+
+    Object *call(const std::vector<Object *> &args) override
+    {
+        if (auto depth = dynamic_cast<Int *>(args.front()))
+        {
+            if (depth->m_val > 0)
+            {
+                interp->set_recursion_depth(depth->m_val);
+                return nullptr;
+            }
+
+            throw runtime_error("Execution error\n<native fun> invalid depth value in 'set_recursion_depth'");
+        }
+
+        throw runtime_error("Execution error\n<native fun> invalid argument type in 'set_recursion_depth'");
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "set_recursion_depth";
+    }
+};
+
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
 {
@@ -453,6 +505,14 @@ Interpreter::Interpreter(istream &in, ostream &out)
     ReadLine *rl = static_cast<ReadLine *>(GC::instance().new_object<ReadLine>());
     rl->interp = this;
     m_env.define(Token(TokenType::Var, "readln", 0, 0), rl);
+
+    GetRecursionDepth *grd = static_cast<GetRecursionDepth *>(GC::instance().new_object<GetRecursionDepth>());
+    grd->interp = this;
+    m_env.define(Token(TokenType::Var, "get_recursion_depth", 0, 0), grd);
+
+    SetRecursionDepth *srd = static_cast<SetRecursionDepth *>(GC::instance().new_object<SetRecursionDepth>());
+    srd->interp = this;
+    m_env.define(Token(TokenType::Var, "set_recursion_depth", 0, 0), srd);
 
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
     m_env.define(Token(TokenType::Var, "to_float", 0, 0), GC::instance().new_object<ToFloat>());

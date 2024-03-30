@@ -21,7 +21,7 @@ namespace halo
         std::istream &m_in;
         std::ostream &m_out;
         int m_fun_scope_counter;
-        const int m_max_fun_depth;
+        int m_max_fun_depth;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
         Object *bin_op(Object *left, Object *right, Op op)
@@ -97,6 +97,16 @@ namespace halo
         std::ostream &get_out()
         {
             return m_out;
+        }
+
+        int get_recursion_depth() const
+        {
+            return m_max_fun_depth;
+        }
+
+        void set_recursion_depth(int depth)
+        {
+            m_max_fun_depth = depth;
         }
 
         void inc_fun_scope_counter(size_t line)
