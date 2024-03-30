@@ -9,4 +9,4 @@ class Point:
     end
 end
 
-print(Point);
+println(Point);

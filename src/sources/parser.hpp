@@ -60,6 +60,7 @@ namespace halo
         Expr *alloc_unary_expr(Token t, Expr *e);
         Expr *alloc_call_expr(Expr *e, const std::vector<Expr *> &p);
         Expr *alloc_dot_expr(Expr *e, Token t);
+        Expr *alloc_subscript_expr(Expr *e, Expr *index);
         Expr *alloc_literal(Token t);
         Expr *alloc_var(Token t);
         Expr *alloc_lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);

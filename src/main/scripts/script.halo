@@ -1,0 +1,21 @@
+var a = 0;
+var b = 10;
+
+# for-like
+
+var it = lambda[a, b](): 
+    let a = a + 1;
+
+    if a == b:
+        return null;
+    end
+
+    return a;
+end;
+
+var i = it();
+
+while i:
+    println(i);
+    let i = it();
+end

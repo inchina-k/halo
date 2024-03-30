@@ -146,13 +146,31 @@ namespace halo
         }
     };
 
-    struct String : Object
+    struct Indexable : Object
+    {
+        Indexable()
+            : Object(nullptr)
+        {
+        }
+
+        virtual Object *get(Object *index) = 0;
+        virtual void set(Object *index, Object *val) = 0;
+    };
+
+    struct String : Indexable
     {
         std::string m_val;
 
         String()
-            : Object(nullptr)
+            : Indexable()
         {
+        }
+
+        Object *get(Object *index) override;
+
+        void set(Object *, Object *) override
+        {
+            throw std::runtime_error("set operation is not available for type string");
         }
 
         std::string to_str() const override;

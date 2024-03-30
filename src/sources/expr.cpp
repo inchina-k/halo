@@ -34,6 +34,11 @@ Object *Dot::visit(ExprVisitor *v)
     return v->visit_dot_expr(this);
 }
 
+Object *Subscript::visit(ExprVisitor *v)
+{
+    return v->visit_subscript_expr(this);
+}
+
 Object *Literal::visit(ExprVisitor *v)
 {
     return v->visit_literal(this);

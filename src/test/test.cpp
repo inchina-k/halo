@@ -1184,6 +1184,19 @@ TEST_CASE("calls")
 
         REQUIRE(ep.m_data.str() == "f().method(x, y).field");
     }
+
+    SUBCASE("f().method(x, y).field[i+2]")
+    {
+        string s = "f().method(x, y).field[i+2]";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "f().method(x, y).field[(i+2)]");
+    }
 }
 
 TEST_CASE("scripts")
@@ -1721,7 +1734,7 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
         interp.execute(p.statements());
 
-        REQUIRE(s_out.str() == "<class Point>:\n\t_init_\n\tmethod\n");
+        REQUIRE(s_out.str() == "<class Point>:\n_init_\nmethod\n");
     }
 
     SUBCASE("class/002")
@@ -1875,5 +1888,60 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
 
         REQUIRE_THROWS_AS_MESSAGE(interp.execute(p.statements()), runtime_error, "Execution error\nline 11: name 'x' is not defined");
+    }
+
+    SUBCASE("class/011")
+    {
+        ifstream file("scripts/class/011.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "Object[x=3, y=4]\nObject[x=3, y=3]\n<class Point>:\n_init_\nmove\n");
+    }
+
+    /* CALL */
+
+    SUBCASE("call/001")
+    {
+        ifstream file("scripts/call/001.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "h\n");
+    }
+
+    SUBCASE("call/002")
+    {
+        ifstream file("scripts/call/002.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "set operation is not available for type string", runtime_error);
     }
 }

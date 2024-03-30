@@ -43,6 +43,12 @@ Expr *Parser::alloc_dot_expr(Expr *e, Token t)
     return m_nodes.back().get();
 }
 
+Expr *Parser::alloc_subscript_expr(Expr *e, Expr *index)
+{
+    m_nodes.push_back(make_unique<Subscript>(e, index));
+    return m_nodes.back().get();
+}
+
 Expr *Parser::alloc_literal(Token t)
 {
     m_nodes.push_back(make_unique<Literal>(t));
@@ -155,8 +161,9 @@ Stmt *Parser::assignment_statement()
     Expr *lval = call();
     auto p = dynamic_cast<Var *>(lval);
     auto p2 = dynamic_cast<Dot *>(lval);
+    auto p3 = dynamic_cast<Subscript *>(lval);
 
-    if (p || p2)
+    if (p || p2 || p3)
     {
         consume(TokenType::Equal, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected '=' symbol");
         Expr *e = expr();
@@ -548,6 +555,12 @@ Expr *Parser::call()
         {
             Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected member name");
             callee = alloc_dot_expr(callee, name);
+        }
+        else if (match(TokenType::OpenBracket))
+        {
+            Expr *e = expr();
+            consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected ']' symbol");
+            callee = alloc_subscript_expr(callee, e);
         }
         else
         {

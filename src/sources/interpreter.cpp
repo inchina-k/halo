@@ -290,7 +290,7 @@ struct Class : ClassBase
 
     string to_str() const override
     {
-        string res = "<class " + m_cst->m_name.m_lexeme + ">:\n";
+        string res = "<class " + m_cst->m_name.m_lexeme + ">:";
         vector<string> vs;
         for (const auto &[name, fn] : m_methods)
         {
@@ -299,11 +299,11 @@ struct Class : ClassBase
 
         sort(vs.begin(), vs.end());
 
+        bool first = true;
         for (const auto &name : vs)
         {
-            res += "\t";
+            res += first ? "\n" : "";
             res += name;
-            res += "\n";
         }
 
         return res;
@@ -736,6 +736,18 @@ Object *Interpreter::visit_dot_expr(Dot *e)
     return o->get_field(e->m_name.m_lexeme);
 }
 
+Object *Interpreter::visit_subscript_expr(Subscript *e)
+{
+    Object *expr = evaluate(e->m_expr);
+
+    if (auto s = dynamic_cast<String *>(expr))
+    {
+        return s->get(evaluate(e->m_index));
+    }
+
+    return nullptr;
+}
+
 Object *Interpreter::visit_literal(Literal *e)
 {
     if (e->m_val)
@@ -840,6 +852,16 @@ void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
     {
         Object *o = evaluate(p2->m_expr);
         o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
+        return;
+    }
+    if (auto p3 = dynamic_cast<Subscript *>(e->m_lval))
+    {
+        Object *o = evaluate(p3->m_expr);
+        if (auto a = dynamic_cast<Indexable *>(o))
+        {
+            a->set(evaluate(p3->m_index), o);
+        }
+        // o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
         return;
     }
 
