@@ -1275,6 +1275,58 @@ TEST_CASE("scripts")
         REQUIRE(s_out.str() == "Hello");
     }
 
+    SUBCASE("native_fun/005")
+    {
+        ifstream file("scripts/native_fun/005.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1024\n2048\n");
+    }
+
+    SUBCASE("native_fun/006")
+    {
+        ifstream file("scripts/native_fun/006.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "Execution error\n<native fun> invalid depth value in 'set_recursion_depth'", runtime_error);
+    }
+
+    SUBCASE("native_fun/007")
+    {
+        ifstream file("scripts/native_fun/007.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "Execution error\n<native fun> invalid argument type in 'set_recursion_depth'", runtime_error);
+    }
+
     /* CONTROL STMT */
 
     SUBCASE("control_stmt/001")
@@ -1943,5 +1995,146 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
 
         REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "set operation is not available for type string", runtime_error);
+    }
+
+    SUBCASE("call/003")
+    {
+        ifstream file("scripts/call/003.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "he\n");
+    }
+
+    SUBCASE("call/004")
+    {
+        ifstream file("scripts/call/004.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "invalid index in 'substr'", runtime_error);
+    }
+
+    SUBCASE("call/005")
+    {
+        ifstream file("scripts/call/005.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "invalid argument type in 'substr'", runtime_error);
+    }
+
+    SUBCASE("call/006")
+    {
+        ifstream file("scripts/call/006.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "invalid index", runtime_error);
+    }
+
+    SUBCASE("call/007")
+    {
+        ifstream file("scripts/call/007.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "e\n");
+    }
+
+    SUBCASE("call/008")
+    {
+        ifstream file("scripts/call/008.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "hello\n");
+    }
+
+    SUBCASE("call/009")
+    {
+        ifstream file("scripts/call/009.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "undefined method 'pop'", runtime_error);
+    }
+
+    SUBCASE("call/010")
+    {
+        ifstream file("scripts/call/010.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "invalid number of arguments in 'substr'", runtime_error);
     }
 }

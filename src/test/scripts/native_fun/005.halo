@@ -1,0 +1,3 @@
+get_recursion_depth();
+set_recursion_depth(2048);
+get_recursion_depth();

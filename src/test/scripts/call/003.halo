@@ -1,0 +1,3 @@
+var a = "hello";
+var b = a.substr(0, 2);
+println(b);

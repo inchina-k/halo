@@ -146,7 +146,7 @@ namespace halo
         }
     };
 
-    struct Indexable : Object
+    struct Indexable : virtual Object
     {
         Indexable()
             : Object(nullptr)
@@ -157,7 +157,30 @@ namespace halo
         virtual void set(Object *index, Object *val) = 0;
     };
 
-    struct String : Indexable
+    struct Callable : virtual Object
+    {
+        Callable()
+            : Object(nullptr)
+        {
+        }
+
+        virtual Object *call([[maybe_unused]] const std::vector<Object *> &args)
+        {
+            throw std::runtime_error("call not implemented");
+        }
+
+        virtual int arity() const
+        {
+            throw std::runtime_error("arity not implemented");
+        }
+    };
+
+    struct ClassBase : Callable
+    {
+        virtual Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) = 0;
+    };
+
+    struct String : Indexable, ClassBase
     {
         std::string m_val;
 
@@ -186,29 +209,8 @@ namespace halo
 
             return m_val == p->m_val;
         }
-    };
 
-    struct Callable : Object
-    {
-        Callable()
-            : Object(nullptr)
-        {
-        }
-
-        virtual Object *call([[maybe_unused]] const std::vector<Object *> &args)
-        {
-            throw std::runtime_error("call not implemented");
-        }
-
-        virtual int arity() const
-        {
-            throw std::runtime_error("arity not implemented");
-        }
-    };
-
-    struct ClassBase : Callable
-    {
-        virtual Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) = 0;
+        Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
     };
 
     struct Null : Object

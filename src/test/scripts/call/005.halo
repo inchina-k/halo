@@ -1,0 +1,2 @@
+var a = "hello";
+var b = a.substr(3, "oops");

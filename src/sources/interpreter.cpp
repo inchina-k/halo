@@ -494,23 +494,23 @@ Interpreter::Interpreter(istream &in, ostream &out)
 {
     m_env.add_scope(Environment::ScopeType::Global);
 
-    PrintLine *pl = static_cast<PrintLine *>(GC::instance().new_object<PrintLine>());
+    PrintLine *pl = dynamic_cast<PrintLine *>(GC::instance().new_object<PrintLine>());
     pl->interp = this;
     m_env.define(Token(TokenType::Var, "println", 0, 0), pl);
 
-    Print *p = static_cast<Print *>(GC::instance().new_object<Print>());
+    Print *p = dynamic_cast<Print *>(GC::instance().new_object<Print>());
     p->interp = this;
     m_env.define(Token(TokenType::Var, "print", 0, 0), p);
 
-    ReadLine *rl = static_cast<ReadLine *>(GC::instance().new_object<ReadLine>());
+    ReadLine *rl = dynamic_cast<ReadLine *>(GC::instance().new_object<ReadLine>());
     rl->interp = this;
     m_env.define(Token(TokenType::Var, "readln", 0, 0), rl);
 
-    GetRecursionDepth *grd = static_cast<GetRecursionDepth *>(GC::instance().new_object<GetRecursionDepth>());
+    GetRecursionDepth *grd = dynamic_cast<GetRecursionDepth *>(GC::instance().new_object<GetRecursionDepth>());
     grd->interp = this;
     m_env.define(Token(TokenType::Var, "get_recursion_depth", 0, 0), grd);
 
-    SetRecursionDepth *srd = static_cast<SetRecursionDepth *>(GC::instance().new_object<SetRecursionDepth>());
+    SetRecursionDepth *srd = dynamic_cast<SetRecursionDepth *>(GC::instance().new_object<SetRecursionDepth>());
     srd->interp = this;
     m_env.define(Token(TokenType::Var, "set_recursion_depth", 0, 0), srd);
 
@@ -763,6 +763,10 @@ Object *Interpreter::visit_call_expr(Call *e)
             args.push_back(evaluate(arg));
         }
 
+        if (auto str = dynamic_cast<String *>(o))
+        {
+            return str->call_method(o, p->m_name.m_lexeme, args);
+        }
         return o->call_method(p->m_name.m_lexeme, args);
     }
 
@@ -841,7 +845,7 @@ Object *Interpreter::visit_literal(Literal *e)
     case TokenType::StrLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::String);
-        static_cast<String *>(o)->m_val = e->m_token.m_lexeme;
+        dynamic_cast<String *>(o)->m_val = e->m_token.m_lexeme;
         return o;
     }
     default:
@@ -886,7 +890,7 @@ Object *Interpreter::visit_var(Var *e)
 
 Object *Interpreter::visit_lambda(Lambda *e)
 {
-    LambdaFunction *lf = static_cast<LambdaFunction *>(GC::instance().new_object<LambdaFunction>());
+    LambdaFunction *lf = dynamic_cast<LambdaFunction *>(GC::instance().new_object<LambdaFunction>());
     lf->m_interp = this;
     lf->m_l = e;
     for (auto t : e->m_capture)
@@ -989,7 +993,7 @@ void Interpreter::visit_continue_stmt([[maybe_unused]] ContinueStmt *e)
 
 void Interpreter::visit_fun_stmt(FunStmt *e)
 {
-    Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
+    Function *fn = dynamic_cast<Function *>(GC::instance().new_object<Function>());
     fn->m_interp = this;
     fn->m_fst = e;
     m_env.define(Token(TokenType::Var, fn->m_fst->m_name.m_lexeme, 0, 0), fn);
@@ -1003,13 +1007,13 @@ void Interpreter::visit_return_stmt(ReturnStmt *e)
 
 void Interpreter::visit_class_stmt(ClassStmt *e)
 {
-    Class *cl = static_cast<Class *>(GC::instance().new_object<Class>());
+    Class *cl = dynamic_cast<Class *>(GC::instance().new_object<Class>());
     cl->m_interp = this;
     cl->m_cst = e;
 
     for (const auto &f : e->m_methods)
     {
-        Function *fn = static_cast<Function *>(GC::instance().new_object<Function>());
+        Function *fn = dynamic_cast<Function *>(GC::instance().new_object<Function>());
         fn->m_interp = this;
         fn->m_fst = f.get();
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())

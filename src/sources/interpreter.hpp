@@ -31,7 +31,7 @@ namespace halo
                 if (OpType *p_right = dynamic_cast<OpType *>(right))
                 {
                     Object *r = GC::instance().new_object(ObType);
-                    static_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
+                    dynamic_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
             }
