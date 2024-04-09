@@ -679,6 +679,10 @@ Expr *Parser::lambda()
     return alloc_lambda(capture, params, move(body));
 }
 
+/*
+    HELPING FUNCTIONS
+*/
+
 bool Parser::match(TokenType t)
 {
     if (m_tokens[m_curr].m_type == t)

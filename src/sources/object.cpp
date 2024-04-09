@@ -88,3 +88,50 @@ Object *String::get(Object *index)
 
     throw runtime_error("invalid index value type");
 }
+
+Object *List::get(Object *index)
+{
+    if (auto i = dynamic_cast<Int *>(index))
+    {
+        if (i->m_val < 0 || i->m_val > int(m_vals.size() - 1))
+        {
+            throw runtime_error("invalid index");
+        }
+
+        return m_vals[i->m_val];
+    }
+
+    throw runtime_error("invalid index value type");
+}
+
+void List::set(Object *index, Object *val)
+{
+    if (auto i = dynamic_cast<Int *>(index))
+    {
+        if (i->m_val < 0 || i->m_val > int(m_vals.size() - 1))
+        {
+            throw runtime_error("invalid index");
+        }
+
+        m_vals[i->m_val] = val;
+    }
+
+    throw runtime_error("invalid index value type");
+}
+
+string List::to_str() const
+{
+    std::string res = "List[";
+    bool first = true;
+
+    for (auto val : m_vals)
+    {
+        res += first ? "" : ", ";
+        res += val->to_str();
+        first = false;
+    }
+
+    res += "]";
+
+    return res;
+}

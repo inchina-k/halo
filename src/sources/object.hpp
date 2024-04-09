@@ -213,6 +213,36 @@ namespace halo
         Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
     };
 
+    struct List : Indexable, ClassBase
+    {
+        std::vector<Object *> m_vals;
+
+        List()
+            : Indexable()
+        {
+        }
+
+        Object *get(Object *index) override;
+
+        void set(Object *index, Object *val) override;
+
+        std::string to_str() const override;
+
+        bool equals(Object *other) const override
+        {
+            List *p = dynamic_cast<List *>(other);
+
+            if (!p)
+            {
+                return false;
+            }
+
+            return m_vals == p->m_vals;
+        }
+
+        Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+    };
+
     struct Null : Object
     {
         Null()
