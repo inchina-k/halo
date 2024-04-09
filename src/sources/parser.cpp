@@ -67,6 +67,12 @@ Expr *Parser::alloc_lambda(const std::vector<Token> &capture, const std::vector<
     return m_nodes.back().get();
 }
 
+Expr *Parser::alloc_list(const std::vector<Expr *> &params)
+{
+    m_nodes.push_back(make_unique<ListExpr>(params));
+    return m_nodes.back().get();
+}
+
 Expr *Parser::parse_expr()
 {
     return expr();
@@ -602,6 +608,10 @@ Expr *Parser::primary()
 
         throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <primary expression> expected ')' symbol");
     }
+    else if (match(TokenType::OpenBracket))
+    {
+        return list();
+    }
 
     throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <primary expression> unknown expression");
 }
@@ -677,6 +687,25 @@ Expr *Parser::lambda()
     m_scopes.pop_back();
 
     return alloc_lambda(capture, params, move(body));
+}
+
+Expr *Parser::list()
+{
+    vector<Expr *> args;
+
+    if (peek().m_type != TokenType::CloseBracket)
+    {
+        do
+        {
+            Expr *e = expr();
+            args.push_back(e);
+
+        } while (match(TokenType::Comma));
+    }
+
+    consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <list expression> expected ']' symbol");
+
+    return alloc_list(args);
 }
 
 /*

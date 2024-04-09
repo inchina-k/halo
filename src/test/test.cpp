@@ -1199,6 +1199,76 @@ TEST_CASE("calls")
     }
 }
 
+TEST_CASE("list")
+{
+    Printer ep;
+
+    SUBCASE("[1, 2, a, b, \"hello\"]")
+    {
+        string s = "[1, 2, a, b, \"hello\"]";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "[1, 2, a, b, hello]");
+    }
+
+    SUBCASE("[1 + 2, a, b, \"hello\"]")
+    {
+        string s = "[1 + 2, a, b, \"hello\"]";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "[(1+2), a, b, hello]");
+    }
+
+    SUBCASE("[   ]")
+    {
+        string s = "[   ]";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "[]");
+    }
+
+    SUBCASE("[lambda[g](x, y): return g * x + g * y; end]")
+    {
+        string s = "[lambda[g](x, y): return g * x + g * y; end]";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "[lambda[1](2)]");
+    }
+
+    SUBCASE("[fn, [1, 2, 3]]")
+    {
+        string s = "[fn, [1, 2, 3]]";
+        Scanner sc(s);
+        auto v = sc.scan();
+        Parser p(v);
+        Expr *e = p.parse_expr();
+
+        e->visit(&ep);
+
+        REQUIRE(ep.m_data.str() == "[fn, [1, 2, 3]]");
+    }
+}
+
 TEST_CASE("scripts")
 {
     /* NATIVE FUN */
@@ -2136,5 +2206,26 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
 
         REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "invalid number of arguments in 'substr'", runtime_error);
+    }
+
+    /* LIST */
+
+    SUBCASE("list/001")
+    {
+        ifstream file("scripts/list/001.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "[1, 2, 3]\n");
     }
 }

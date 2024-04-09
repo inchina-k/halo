@@ -14,6 +14,7 @@ namespace halo
         Bool,
         String,
         Callable,
+        List,
         Null
     };
 
@@ -65,6 +66,9 @@ namespace halo
                 return m_objects.back();
             case ObjectType::String:
                 m_objects.push_back(new String());
+                return m_objects.back();
+            case ObjectType::List:
+                m_objects.push_back(new List());
                 return m_objects.back();
             case ObjectType::Callable:
                 m_objects.push_back(o);

@@ -53,6 +53,7 @@ namespace halo
         Expr *call();
         Expr *primary();
         Expr *lambda();
+        Expr *list();
 
         Expr *alloc_grouping(Expr *e);
         Expr *alloc_binary_expr(Token t, Expr *l, Expr *r);
@@ -64,6 +65,7 @@ namespace halo
         Expr *alloc_literal(Token t);
         Expr *alloc_var(Token t);
         Expr *alloc_lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
+        Expr *alloc_list(const std::vector<Expr *> &params);
 
         bool match(TokenType t);
         const Token &consume(TokenType t, std::string err);

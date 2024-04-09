@@ -900,6 +900,18 @@ Object *Interpreter::visit_lambda(Lambda *e)
     return lf;
 }
 
+Object *Interpreter::visit_list(ListExpr *e)
+{
+    Object *o = GC::instance().new_object(ObjectType::List);
+    vector<Object *> vals;
+    for (auto el : e->m_params)
+    {
+        vals.push_back(evaluate(el));
+    }
+    dynamic_cast<List *>(o)->m_vals = vals;
+    return o;
+}
+
 void Interpreter::visit_var_stmt(VarStmt *e)
 {
     m_env.define(e->m_token, e->m_expr ? evaluate(e->m_expr) : nullptr);

@@ -147,6 +147,18 @@ namespace halo
         Object *visit(ExprVisitor *v) override;
     };
 
+    struct ListExpr : Expr
+    {
+        std::vector<Expr *> m_params;
+
+        ListExpr(const std::vector<Expr *> &params)
+            : m_params(params)
+        {
+        }
+
+        Object *visit(ExprVisitor *v) override;
+    };
+
     struct ExprVisitor
     {
         virtual Object *visit_grouping(Grouping *e) = 0;
@@ -159,5 +171,6 @@ namespace halo
         virtual Object *visit_literal(Literal *e) = 0;
         virtual Object *visit_var(Var *e) = 0;
         virtual Object *visit_lambda(Lambda *e) = 0;
+        virtual Object *visit_list(ListExpr *e) = 0;
     };
 }

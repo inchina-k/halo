@@ -25,6 +25,23 @@ string String::to_str() const
     return m_val;
 }
 
+string List::to_str() const
+{
+    std::string res = "[";
+    bool first = true;
+
+    for (auto val : m_vals)
+    {
+        res += first ? "" : ", ";
+        res += val->to_str();
+        first = false;
+    }
+
+    res += "]";
+
+    return res;
+}
+
 string Null::to_str() const
 {
     return "null";
@@ -119,19 +136,7 @@ void List::set(Object *index, Object *val)
     throw runtime_error("invalid index value type");
 }
 
-string List::to_str() const
+Object *List::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
 {
-    std::string res = "List[";
-    bool first = true;
-
-    for (auto val : m_vals)
-    {
-        res += first ? "" : ", ";
-        res += val->to_str();
-        first = false;
-    }
-
-    res += "]";
-
-    return res;
+    return nullptr;
 }

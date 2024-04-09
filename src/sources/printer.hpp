@@ -100,7 +100,24 @@ namespace halo
 
         Object *visit_lambda(Lambda *e) override
         {
-            m_data << "lambda(" << e->m_params.size() << ")";
+            m_data << "lambda[" << e->m_capture.size() << "]"
+                   << "(" << e->m_params.size() << ")";
+
+            return nullptr;
+        }
+
+        Object *visit_list(ListExpr *e) override
+        {
+            m_data << "[";
+            for (size_t i = 0; i < e->m_params.size(); ++i)
+            {
+                if (i != 0)
+                {
+                    m_data << ", ";
+                }
+                e->m_params[i]->visit(this);
+            }
+            m_data << "]";
 
             return nullptr;
         }

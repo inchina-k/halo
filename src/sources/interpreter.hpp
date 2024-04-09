@@ -139,6 +139,7 @@ namespace halo
         Object *visit_literal(Literal *e) override;
         Object *visit_var(Var *e) override;
         Object *visit_lambda(Lambda *e) override;
+        Object *visit_list(ListExpr *e) override;
 
         void visit_var_stmt(VarStmt *e) override;
         void visit_assignment_stmt(AssignmentStmt *e) override;
