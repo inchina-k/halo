@@ -1,6 +1,8 @@
 #include "object.hpp"
 #include "gc.hpp"
 #include "token_type.hpp"
+#include <iostream>
+#include <string>
 
 using namespace std;
 using namespace halo;
@@ -27,7 +29,7 @@ string String::to_str() const
 
 string List::to_str() const
 {
-    std::string res = "[";
+    string res = "[";
     bool first = true;
 
     for (auto val : m_vals)
@@ -131,6 +133,7 @@ void List::set(Object *index, Object *val)
         }
 
         m_vals[i->m_val] = val;
+        return;
     }
 
     throw runtime_error("invalid index value type");

@@ -808,6 +808,10 @@ Object *Interpreter::visit_subscript_expr(Subscript *e)
     {
         return s->get(evaluate(e->m_index));
     }
+    if (auto l = dynamic_cast<List *>(expr))
+    {
+        return l->get(evaluate(e->m_index));
+    }
 
     return nullptr;
 }
@@ -935,7 +939,7 @@ void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
         Object *o = evaluate(p3->m_expr);
         if (auto a = dynamic_cast<Indexable *>(o))
         {
-            a->set(evaluate(p3->m_index), o);
+            a->set(evaluate(p3->m_index), evaluate(e->m_expr));
         }
         // o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
         return;

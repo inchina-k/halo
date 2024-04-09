@@ -1,0 +1,15 @@
+var list = [1, 2, 3];
+var a = list[0];
+
+println(list[0]);
+println(a);
+
+let a = "hi";
+
+println(list[0]);
+println(a);
+
+let list[0] = "hey";
+
+println(list[0]);
+println(a);

@@ -2228,4 +2228,80 @@ TEST_CASE("scripts")
 
         REQUIRE(s_out.str() == "[1, 2, 3]\n");
     }
+
+    SUBCASE("list/002")
+    {
+        ifstream file("scripts/list/002.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n2\n3\n");
+    }
+
+    SUBCASE("list/003")
+    {
+        ifstream file("scripts/list/003.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\nhello\n");
+    }
+
+    SUBCASE("list/004")
+    {
+        ifstream file("scripts/list/004.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "3\n");
+    }
+
+    SUBCASE("list/005")
+    {
+        ifstream file("scripts/list/005.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n1\n1\nhi\nhey\nhi\n");
+    }
 }
