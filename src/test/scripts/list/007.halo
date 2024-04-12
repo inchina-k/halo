@@ -1,0 +1,3 @@
+var list = [1, 2, 3];
+list.put("hi");
+println(list[3]);

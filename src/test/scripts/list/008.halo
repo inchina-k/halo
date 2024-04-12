@@ -1,0 +1,5 @@
+var list = [1, 2, 3];
+list.pop();
+println(list.len());
+list.clear();
+println(list.len());

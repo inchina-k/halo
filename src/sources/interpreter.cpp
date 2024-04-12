@@ -767,6 +767,10 @@ Object *Interpreter::visit_call_expr(Call *e)
         {
             return str->call_method(o, p->m_name.m_lexeme, args);
         }
+        if (auto list = dynamic_cast<List *>(o))
+        {
+            return list->call_method(o, p->m_name.m_lexeme, args);
+        }
         return o->call_method(p->m_name.m_lexeme, args);
     }
 

@@ -1,7 +1,7 @@
 #include "object.hpp"
 #include "gc.hpp"
 #include "token_type.hpp"
-#include <iostream>
+#include "list_methods.hpp"
 #include <string>
 
 using namespace std;
@@ -141,5 +141,30 @@ void List::set(Object *index, Object *val)
 
 Object *List::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
 {
-    return nullptr;
+    if (name == "put")
+    {
+        return put(my, args);
+    }
+    if (name == "pop")
+    {
+        return pop(my, args);
+    }
+    if (name == "pop_at")
+    {
+        return pop_at(my, args);
+    }
+    if (name == "pop_all")
+    {
+        return pop_all(my, args);
+    }
+    if (name == "len")
+    {
+        return len(my, args);
+    }
+    if (name == "clear")
+    {
+        return clear(my, args);
+    }
+
+    throw runtime_error("undefined method '" + name + "'");
 }

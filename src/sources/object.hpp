@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <iostream>
 
 namespace halo
 {
@@ -237,7 +238,20 @@ namespace halo
                 return false;
             }
 
-            return m_vals == p->m_vals;
+            if (m_vals.size() != p->m_vals.size())
+            {
+                return false;
+            }
+
+            for (size_t i = 0; i < m_vals.size(); ++i)
+            {
+                if (!m_vals[i]->equals(p->m_vals[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;

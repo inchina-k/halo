@@ -2304,4 +2304,114 @@ TEST_CASE("scripts")
 
         REQUIRE(s_out.str() == "1\n1\n1\nhi\nhey\nhi\n");
     }
+
+    SUBCASE("list/006")
+    {
+        ifstream file("scripts/list/006.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "3\n");
+    }
+
+    SUBCASE("list/007")
+    {
+        ifstream file("scripts/list/007.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "hi\n");
+    }
+
+    SUBCASE("list/008")
+    {
+        ifstream file("scripts/list/008.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "2\n0\n");
+    }
+
+    SUBCASE("list/009")
+    {
+        ifstream file("scripts/list/009.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "attempt to access an element in an empty container in 'pop'", runtime_error);
+    }
+
+    SUBCASE("list/010")
+    {
+        ifstream file("scripts/list/010.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "invalid argument type in 'pop_at'", runtime_error);
+    }
+
+    SUBCASE("list/011")
+    {
+        ifstream file("scripts/list/011.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "[1, 3]\n");
+    }
 }
