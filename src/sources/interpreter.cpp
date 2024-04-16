@@ -840,7 +840,7 @@ Object *Interpreter::visit_literal(Literal *e)
     case TokenType::FloatLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Float);
-        static_cast<Float *>(o)->m_val = stoi(e->m_token.m_lexeme);
+        static_cast<Float *>(o)->m_val = stof(e->m_token.m_lexeme);
         return o;
     }
     case TokenType::True:
