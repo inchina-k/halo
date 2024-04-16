@@ -1,0 +1,11 @@
+var i = 1;
+
+while i < 10:
+    println(i);
+
+    if i == 3:
+        break;
+    end
+
+    let i = i + 1;
+end

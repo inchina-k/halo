@@ -1,0 +1,8 @@
+# get_recursion_depth();
+# set_recursion_depth(2048);
+
+fun max_depth_fun():
+    max_depth_fun();
+end
+
+max_depth_fun();

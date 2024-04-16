@@ -1,0 +1,5 @@
+fun say_hello():
+    println("hello, world");
+end
+
+say_hello();

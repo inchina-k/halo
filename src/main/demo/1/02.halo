@@ -1,0 +1,11 @@
+var v = "hello";
+println(v);
+
+let v = 42;
+println(v);
+
+let v = 43.000001;
+println(v);
+
+let v = true;
+println(v);

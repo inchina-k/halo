@@ -1,0 +1,2 @@
+var str = "hello, world";
+println(str[0]);

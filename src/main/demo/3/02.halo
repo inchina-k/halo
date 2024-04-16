@@ -1,0 +1,6 @@
+fun sum(x, y, z):
+    return x + y + z;
+end
+
+var res = sum(1, 2, 3);
+println(res);

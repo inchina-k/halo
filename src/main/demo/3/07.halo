@@ -1,0 +1,5 @@
+fun f():
+    fun ff():
+        # oops
+    end
+end

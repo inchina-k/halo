@@ -1,0 +1,3 @@
+var str = "hello, world";
+var sub = str.substr(0, 5);
+println(sub);

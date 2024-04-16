@@ -1,0 +1,18 @@
+var lst = [1, "hi", 2, "hi", "hi", 3, 4, 5];
+
+lst.pop_all("hi");
+println(lst);
+
+lst.pop_at(0);
+println(lst);
+
+lst.pop();
+println(lst);
+
+lst.clear();
+println(lst);
+
+lst.put("new");
+println(lst);
+
+println(lst.len());
