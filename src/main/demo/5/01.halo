@@ -6,7 +6,20 @@ class Point:
         let my.x = x;
         let my.y = y;
     end
+	
+    fun move(xd, yd):  
+        let my.x = my.x + xd;
+        let my.y = my.y + yd;
+    end
 end
 
 var p = Point(3, 4);
 println(p);
+
+println(p.x);
+println(p.y);
+
+p.move(0, -1);
+println(p);
+
+println(Point);

@@ -3,8 +3,8 @@ let num = to_float(num);
 
 if num < 0:
     println("num < 0");
-elif num >= 0 and num <= 10:
-    println("num >= 0 or num <= 10");
+elif num <= 10:
+    println("num >= 0 and num <= 10");
 else:
     println("num > 10");
 end

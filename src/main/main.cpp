@@ -131,7 +131,7 @@ void run_script(const string &file)
 
     if (!f)
     {
-        cerr << "create the file you twit" << endl;
+        cerr << "no file found" << endl;
     }
     else
     {
