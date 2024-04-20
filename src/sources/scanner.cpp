@@ -269,6 +269,7 @@ namespace
         {"elif", TokenType::Elif},
         {"else", TokenType::Else},
         {"for", TokenType::For},
+        {"in", TokenType::In},
         {"while", TokenType::While},
         {"end", TokenType::End},
         {"break", TokenType::Break},

@@ -1,10 +1,10 @@
-var num = readln();
-let num = to_float(num);
+var grade = readln();
+let grade = to_float(grade);
 
-if num < 0:
-    println("num < 0");
-elif num <= 10:
-    println("num >= 0 and num <= 10");
+if grade <= 40:
+    println("fail");
+elif grade <= 100:
+    println("pass");
 else:
-    println("num > 10");
+    println("invalid value");
 end

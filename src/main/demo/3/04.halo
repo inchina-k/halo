@@ -1,5 +1,5 @@
-# get_recursion_depth();
-# set_recursion_depth(2048);
+set_recursion_depth(2048);
+get_recursion_depth();
 
 fun max_depth_fun():
     max_depth_fun();

@@ -83,6 +83,23 @@ namespace halo
         void visit(StmtVisitor *v) override;
     };
 
+    struct ForStmt : Stmt
+    {
+        Token m_identifier;
+        Expr *m_begin;
+        Expr *m_end;
+        Expr *m_step;
+        Expr *m_iterable;
+        std::vector<std::unique_ptr<Stmt>> m_do_branch;
+
+        ForStmt(Token identifier, Expr *begin, Expr *end, Expr *step, Expr *iterable, std::vector<std::unique_ptr<Stmt>> do_branch)
+            : m_identifier(identifier), m_begin(begin), m_end(end), m_step(step), m_iterable(iterable), m_do_branch(std::move(do_branch))
+        {
+        }
+
+        void visit(StmtVisitor *v) override;
+    };
+
     struct BreakStmt : Stmt
     {
         void visit(StmtVisitor *v) override;
@@ -140,6 +157,7 @@ namespace halo
         virtual void visit_expression_stmt(ExpressionStmt *e) = 0;
         virtual void visit_if_stmt(IfStmt *e) = 0;
         virtual void visit_while_stmt(WhileStmt *e) = 0;
+        virtual void visit_for_stmt(ForStmt *e) = 0;
         virtual void visit_break_stmt([[maybe_unused]] BreakStmt *e) = 0;
         virtual void visit_continue_stmt([[maybe_unused]] ContinueStmt *e) = 0;
         virtual void visit_fun_stmt(FunStmt *e) = 0;

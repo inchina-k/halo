@@ -116,6 +116,11 @@ Stmt *Parser::statement()
         return while_statement();
     }
 
+    if (match(TokenType::For))
+    {
+        return for_statement();
+    }
+
     if (match(TokenType::Break))
     {
         return break_statement();
@@ -268,6 +273,77 @@ Stmt *Parser::while_statement()
     m_scopes.pop_back();
 
     return new WhileStmt(cond, move(do_branch));
+}
+
+Stmt *Parser::for_statement()
+{
+    m_scopes.push_back(Scopes::For);
+
+    Token identifier = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected variable identifier");
+
+    consume(TokenType::In, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected 'in' keyword");
+
+    Expr *begin = nullptr;
+    Expr *end = nullptr;
+    Expr *step = nullptr;
+    Expr *iterable = nullptr;
+    vector<unique_ptr<Stmt>> do_branch;
+
+    if (match(TokenType::OpenPar))
+    {
+        vector<Expr *> range_params;
+
+        if (peek().m_type != TokenType::ClosePar)
+        {
+            do
+            {
+                Expr *e = expr();
+                range_params.push_back(e);
+
+            } while (match(TokenType::Comma));
+        }
+
+        consume(TokenType::ClosePar, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected ')' symbol");
+
+        if (range_params.size() == 2)
+        {
+            begin = range_params[0];
+            end = range_params[1];
+        }
+        else if (range_params.size() == 3)
+        {
+            begin = range_params[0];
+            end = range_params[1];
+            step = range_params[2];
+        }
+        else
+        {
+            throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <for statement> invalid number of range arguments");
+        }
+    }
+    else
+    {
+        iterable = expr();
+    }
+
+    consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected ':' symbol");
+
+    while (peek().m_type != TokenType::Eof &&
+           peek().m_type != TokenType::End)
+    {
+        do_branch.emplace_back(statement());
+    }
+
+    if (peek().m_type == TokenType::Eof)
+    {
+        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <for statement> unexpected end of statement");
+    }
+
+    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> missing end of statement");
+
+    m_scopes.pop_back();
+
+    return new ForStmt(identifier, begin, end, step, iterable, move(do_branch));
 }
 
 Stmt *Parser::break_statement()

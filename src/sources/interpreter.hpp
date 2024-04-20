@@ -146,6 +146,7 @@ namespace halo
         void visit_expression_stmt(ExpressionStmt *e) override;
         void visit_if_stmt(IfStmt *e) override;
         void visit_while_stmt(WhileStmt *e) override;
+        void visit_for_stmt(ForStmt *e) override;
         void visit_break_stmt(BreakStmt *e) override;
         void visit_continue_stmt(ContinueStmt *e) override;
         void visit_fun_stmt(FunStmt *e) override;

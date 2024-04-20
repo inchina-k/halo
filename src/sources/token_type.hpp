@@ -46,6 +46,7 @@ namespace halo
         Else,
         Elif,
         For,
+        In,
         While,
         End,
         Break,

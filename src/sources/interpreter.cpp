@@ -1001,6 +1001,70 @@ void Interpreter::visit_while_stmt(WhileStmt *e)
     }
 }
 
+void Interpreter::visit_for_stmt(ForStmt *e)
+{
+    try
+    {
+        if (e->m_begin)
+        {
+            Object *begin = evaluate(e->m_begin);
+            Object *end = evaluate(e->m_end);
+            Object *step = nullptr;
+
+            if (e->m_step)
+            {
+                step = evaluate(e->m_step);
+            }
+            else
+            {
+                step = GC::instance().new_object(ObjectType::Int);
+                dynamic_cast<Int *>(step)->m_val = 1;
+            }
+
+            Int *ibegin = dynamic_cast<Int *>(begin);
+            if (!ibegin)
+            {
+                throw runtime_error("Execution error\n<for statement> begin in range must be integer");
+            }
+            Int *iend = dynamic_cast<Int *>(end);
+            if (!iend)
+            {
+                throw runtime_error("Execution error\n<for statement> end in range must be integer");
+            }
+            Int *istep = dynamic_cast<Int *>(step);
+            if (!istep)
+            {
+                throw runtime_error("Execution error\n<for statement> step in range must be integer");
+            }
+
+            if (istep->m_val == 0)
+            {
+                throw runtime_error("Execution error\n<for statement> step in range must not be 0");
+            }
+
+            for (long long i = ibegin->m_val; istep->m_val > 0 ? i < iend->m_val : i > iend->m_val; i += istep->m_val)
+            {
+                try
+                {
+                    Scope s(m_env, Environment::ScopeType::For);
+                    Object *curr = GC::instance().new_object(ObjectType::Int);
+                    dynamic_cast<Int *>(curr)->m_val = i;
+                    s.m_env.define(e->m_identifier, curr);
+                    execute(e->m_do_branch);
+                }
+                catch (ContinueSignal)
+                {
+                    // empty
+                }
+            }
+        }
+    }
+    catch (BreakSignal)
+    {
+        // empty
+    }
+}
+
 void Interpreter::visit_break_stmt([[maybe_unused]] BreakStmt *e)
 {
     throw BreakSignal();
