@@ -54,6 +54,67 @@ Object *Object::call_method(const std::string &name, const std::vector<Object *>
     return m_type->call_method(this, name, args);
 }
 
+Object *String::get(Object *index)
+{
+    if (auto i = dynamic_cast<Int *>(index))
+    {
+        if (i->m_val < 0 || i->m_val > int(m_val.size() - 1))
+        {
+            throw runtime_error("invalid index");
+        }
+
+        Object *o = GC::instance().new_object(ObjectType::String);
+        dynamic_cast<String *>(o)->m_val = m_val[i->m_val];
+        return o;
+    }
+
+    throw runtime_error("invalid index value type");
+}
+
+Object *String::iter(Object *my, const std::vector<Object *> &args)
+{
+    if (args.size() != 0)
+    {
+        throw runtime_error("invalid number of arguments in '_iter_'");
+    }
+
+    auto str = dynamic_cast<String *>(my);
+
+    Object *res = GC::instance().new_object(ObjectType::StringIter);
+    dynamic_cast<StringIter *>(res)->m_beg = str->m_val.begin();
+    dynamic_cast<StringIter *>(res)->m_end = str->m_val.end();
+    return res;
+}
+
+Object *StringIter::has_next(Object *my, const std::vector<Object *> &args)
+{
+    if (args.size() != 0)
+    {
+        throw runtime_error("invalid number of arguments in '_has_next_'");
+    }
+
+    auto str_iter = dynamic_cast<StringIter *>(my);
+
+    Object *res = GC::instance().new_object(ObjectType::Bool);
+    dynamic_cast<Bool *>(res)->m_val = str_iter->m_beg != str_iter->m_end;
+    return res;
+}
+
+Object *StringIter::next(Object *my, const std::vector<Object *> &args)
+{
+    if (args.size() != 0)
+    {
+        throw runtime_error("invalid number of arguments in '_next_'");
+    }
+
+    auto str_iter = dynamic_cast<StringIter *>(my);
+
+    Object *res = GC::instance().new_object(ObjectType::String);
+    dynamic_cast<String *>(res)->m_val = *str_iter->m_beg;
+    ++str_iter->m_beg;
+    return res;
+}
+
 Object *String::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
 {
     if (name == "substr")
@@ -87,25 +148,26 @@ Object *String::call_method(Object *my, const std::string &name, const std::vect
         dynamic_cast<String *>(res)->m_val = str->m_val.substr(arg1->m_val, arg2->m_val);
         return res;
     }
+    else if (name == "_iter_")
+    {
+        return iter(my, args);
+    }
 
     throw runtime_error("undefined method '" + name + "'");
 }
 
-Object *String::get(Object *index)
+Object *StringIter::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
 {
-    if (auto i = dynamic_cast<Int *>(index))
+    if (name == "_has_next_")
     {
-        if (i->m_val < 0 || i->m_val > int(m_val.size() - 1))
-        {
-            throw runtime_error("invalid index");
-        }
-
-        Object *o = GC::instance().new_object(ObjectType::String);
-        dynamic_cast<String *>(o)->m_val = m_val[i->m_val];
-        return o;
+        return has_next(my, args);
+    }
+    else if (name == "_next_")
+    {
+        return next(my, args);
     }
 
-    throw runtime_error("invalid index value type");
+    throw runtime_error("undefined method '" + name + "'");
 }
 
 Object *List::get(Object *index)
@@ -139,6 +201,49 @@ void List::set(Object *index, Object *val)
     throw runtime_error("invalid index value type");
 }
 
+Object *List::iter(Object *my, const std::vector<Object *> &args)
+{
+    if (args.size() != 0)
+    {
+        throw runtime_error("invalid number of arguments in '_iter_'");
+    }
+
+    auto list = dynamic_cast<List *>(my);
+
+    Object *res = GC::instance().new_object(ObjectType::ListIter);
+    dynamic_cast<ListIter *>(res)->m_beg = list->m_vals.begin();
+    dynamic_cast<ListIter *>(res)->m_end = list->m_vals.end();
+    return res;
+}
+
+Object *ListIter::has_next(Object *my, const std::vector<Object *> &args)
+{
+    if (args.size() != 0)
+    {
+        throw runtime_error("invalid number of arguments in '_has_next_'");
+    }
+
+    auto list_iter = dynamic_cast<ListIter *>(my);
+
+    Object *res = GC::instance().new_object(ObjectType::Bool);
+    dynamic_cast<Bool *>(res)->m_val = list_iter->m_beg != list_iter->m_end;
+    return res;
+}
+
+Object *ListIter::next(Object *my, const std::vector<Object *> &args)
+{
+    if (args.size() != 0)
+    {
+        throw runtime_error("invalid number of arguments in '_next_'");
+    }
+
+    auto list_iter = dynamic_cast<ListIter *>(my);
+
+    Object *res = *list_iter->m_beg;
+    ++list_iter->m_beg;
+    return res;
+}
+
 Object *List::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
 {
     if (name == "put")
@@ -164,6 +269,24 @@ Object *List::call_method(Object *my, const std::string &name, const std::vector
     if (name == "clear")
     {
         return clear(my, args);
+    }
+    if (name == "_iter_")
+    {
+        return iter(my, args);
+    }
+
+    throw runtime_error("undefined method '" + name + "'");
+}
+
+Object *ListIter::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
+{
+    if (name == "_has_next_")
+    {
+        return has_next(my, args);
+    }
+    if (name == "_next_")
+    {
+        return next(my, args);
     }
 
     throw runtime_error("undefined method '" + name + "'");

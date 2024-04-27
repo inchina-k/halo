@@ -1,0 +1,5 @@
+var str = "hello";
+
+for e in str:
+    println(e);
+end

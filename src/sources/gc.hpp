@@ -13,8 +13,10 @@ namespace halo
         Float,
         Bool,
         String,
+        StringIter,
         Callable,
         List,
+        ListIter,
         Null
     };
 
@@ -67,8 +69,14 @@ namespace halo
             case ObjectType::String:
                 m_objects.push_back(new String());
                 return m_objects.back();
+            case ObjectType::StringIter:
+                m_objects.push_back(new StringIter());
+                return m_objects.back();
             case ObjectType::List:
                 m_objects.push_back(new List());
+                return m_objects.back();
+            case ObjectType::ListIter:
+                m_objects.push_back(new ListIter());
                 return m_objects.back();
             case ObjectType::Callable:
                 m_objects.push_back(o);

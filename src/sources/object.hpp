@@ -181,6 +181,22 @@ namespace halo
         virtual Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) = 0;
     };
 
+    struct StringIter : ClassBase
+    {
+        std::string::const_iterator m_beg;
+        std::string::const_iterator m_end;
+
+        StringIter()
+        {
+            m_type = this;
+        }
+
+        Object *has_next(Object *my, const std::vector<Object *> &args);
+        Object *next(Object *my, const std::vector<Object *> &args);
+
+        Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+    };
+
     struct String : Indexable, ClassBase
     {
         std::string m_val;
@@ -188,6 +204,7 @@ namespace halo
         String()
             : Indexable()
         {
+            m_type = this;
         }
 
         Object *get(Object *index) override;
@@ -211,6 +228,24 @@ namespace halo
             return m_val == p->m_val;
         }
 
+        Object *iter(Object *my, const std::vector<Object *> &args);
+
+        Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+    };
+
+    struct ListIter : ClassBase
+    {
+        std::vector<Object *>::const_iterator m_beg;
+        std::vector<Object *>::const_iterator m_end;
+
+        ListIter()
+        {
+            m_type = this;
+        }
+
+        Object *has_next(Object *my, const std::vector<Object *> &args);
+        Object *next(Object *my, const std::vector<Object *> &args);
+
         Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
     };
 
@@ -221,6 +256,7 @@ namespace halo
         List()
             : Indexable()
         {
+            m_type = this;
         }
 
         Object *get(Object *index) override;
@@ -253,6 +289,8 @@ namespace halo
 
             return true;
         }
+
+        Object *iter(Object *my, const std::vector<Object *> &args);
 
         Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
     };

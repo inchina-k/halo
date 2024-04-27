@@ -2509,4 +2509,61 @@ TEST_CASE("scripts")
 
         REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()), "Execution error\n<for statement> step in range must not be 0", runtime_error);
     }
+
+    SUBCASE("control_stmt/014")
+    {
+        ifstream file("scripts/control_stmt/014.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n2\n3\n4\n");
+    }
+
+    SUBCASE("control_stmt/015")
+    {
+        ifstream file("scripts/control_stmt/015.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "1\n2\n3\n");
+    }
+
+    SUBCASE("control_stmt/016")
+    {
+        ifstream file("scripts/control_stmt/016.halo");
+        string src = string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        Scanner sc(src);
+        auto v = sc.scan();
+        Parser p(v);
+        p.parse();
+
+        istringstream s_in("");
+        ostringstream s_out;
+
+        Interpreter interp(s_in, s_out);
+
+        interp.execute(p.statements());
+
+        REQUIRE(s_out.str() == "h\ne\nl\nl\no\n");
+    }
 }

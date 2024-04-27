@@ -1,0 +1,62 @@
+class Node:
+    var data;
+    var next;
+
+    fun _init_(data, next):
+        let my.data = data;
+        let my.next = next;
+    end
+end
+
+class Iter:
+    var curr;
+   
+    fun _init_(curr):
+        let my.curr = curr;
+    end
+
+    fun _has_next_():
+        return my.curr != null;
+    end
+
+    fun _next_():
+        var res = my.curr.data;
+        let my.curr = my.curr.next;
+        return res;
+    end
+end
+
+class LinkedList:
+    var head;
+    var tail;
+
+    fun add(data):
+        if (my.head == null):
+            let my.head = Node(data, null);
+            let my.tail = my.head;
+        else:
+            let my.tail.next = Node(data, null);
+            let my.tail = my.tail.next;
+        end
+    end
+
+    fun _iter_():
+        return Iter(my.head);
+    end
+end
+
+var x = LinkedList();
+x.add(1);
+x.add(2);
+x.add(3);
+x.add(4);
+
+#var it = x._iter_();
+#while it._has_next_():
+#    var e = it._next_();
+#    println(e);
+#end
+
+for e in x:
+    println(e);
+end

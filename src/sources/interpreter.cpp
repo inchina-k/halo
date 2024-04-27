@@ -763,14 +763,6 @@ Object *Interpreter::visit_call_expr(Call *e)
             args.push_back(evaluate(arg));
         }
 
-        if (auto str = dynamic_cast<String *>(o))
-        {
-            return str->call_method(o, p->m_name.m_lexeme, args);
-        }
-        if (auto list = dynamic_cast<List *>(o))
-        {
-            return list->call_method(o, p->m_name.m_lexeme, args);
-        }
         return o->call_method(p->m_name.m_lexeme, args);
     }
 
@@ -1056,6 +1048,51 @@ void Interpreter::visit_for_stmt(ForStmt *e)
                 {
                     // empty
                 }
+            }
+        }
+        else if (e->m_iterable)
+        {
+            Object *iterable = evaluate(e->m_iterable);
+            Object *it = nullptr;
+
+            try
+            {
+                it = iterable->call_method("_iter_", vector<Object *>());
+            }
+            catch (const std::exception &)
+            {
+                throw runtime_error("Execution error\n<for> uniterable object");
+            }
+
+            try
+            {
+                Bool *has_next = dynamic_cast<Bool *>(it->call_method("_has_next_", vector<Object *>()));
+                if (!has_next)
+                {
+                    throw runtime_error("");
+                }
+
+                while (has_next->m_val)
+                {
+                    Object *el = it->call_method("_next_", vector<Object *>());
+                    try
+                    {
+                        Scope s(m_env, Environment::ScopeType::For);
+                        // Object *curr = GC::instance().new_object(ObjectType::Int);
+                        // dynamic_cast<Int *>(curr)->m_val = i;
+                        s.m_env.define(e->m_identifier, el);
+                        execute(e->m_do_branch);
+                    }
+                    catch (ContinueSignal)
+                    {
+                        // empty
+                    }
+                    has_next = dynamic_cast<Bool *>(it->call_method("_has_next_", vector<Object *>()));
+                }
+            }
+            catch (const std::exception &)
+            {
+                throw runtime_error("Execution error\n<for> invalid iterator");
             }
         }
     }
