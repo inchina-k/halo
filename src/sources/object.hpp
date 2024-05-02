@@ -174,6 +174,11 @@ namespace halo
         {
             throw std::runtime_error("arity not implemented");
         }
+
+        virtual std::string debug_info() const
+        {
+            throw std::runtime_error("debug_info not implemented");
+        }
     };
 
     struct ClassBase : Callable

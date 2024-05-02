@@ -22,6 +22,7 @@ namespace halo
         {
             size_t m_line;
             std::string m_name;
+            std::string m_call_info;
         };
 
         struct DebugManager

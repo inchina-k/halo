@@ -1,0 +1,16 @@
+class T:
+    fun _init_():
+    end
+
+    fun f():
+        var res = lambda(): println(42 + "hello"); end;
+        res();
+    end
+end
+
+fun main():
+    var t = T();
+    t.g();
+end
+
+main();

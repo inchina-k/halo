@@ -1,4 +1,5 @@
 #include "env.hpp"
+#include "interpreter.hpp"
 
 using namespace std;
 using namespace halo;
@@ -7,7 +8,7 @@ void Environment::define(Token t, Object *o)
 {
     if (m_data.back().find(t.m_lexeme) != m_data.back().end())
     {
-        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": <environment> name '" + t.m_lexeme + "' is defined already");
+        throw runtime_error(m_interp->report_error("name '" + t.m_lexeme + "' is defined already"));
     }
 
     m_data.back()[t.m_lexeme] = o;
@@ -19,7 +20,7 @@ void Environment::assign(Token t, Object *o)
 
     if (!p.second)
     {
-        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": <environment> name '" + t.m_lexeme + "' is not defined");
+        throw runtime_error(m_interp->report_error("name '" + t.m_lexeme + "' is not defined"));
     }
 
     p.first->second = o;
@@ -31,7 +32,7 @@ Object *Environment::get(Token t)
 
     if (!p.second)
     {
-        throw runtime_error("Execution error\nline " + to_string(t.m_line) + ": <environment> name '" + t.m_lexeme + "' is not defined");
+        throw runtime_error(m_interp->report_error("name '" + t.m_lexeme + "' is not defined"));
     }
 
     return p.first->second;

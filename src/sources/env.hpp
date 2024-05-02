@@ -9,6 +9,8 @@
 
 namespace halo
 {
+    class Interpreter;
+
     struct Environment
     {
         enum class ScopeType
@@ -27,6 +29,12 @@ namespace halo
 
         std::vector<std::unordered_map<std::string, Object *>> m_data;
         std::vector<ScopeType> m_scopes;
+        Interpreter *m_interp;
+
+        Environment(Interpreter *interp)
+            : m_interp(interp)
+        {
+        }
 
         void define(Token t, Object *o);
         void assign(Token t, Object *o);

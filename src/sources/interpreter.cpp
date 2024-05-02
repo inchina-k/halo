@@ -64,6 +64,7 @@ struct Function : Callable
 {
     Interpreter *m_interp = nullptr;
     FunStmt *m_fst = nullptr;
+    string m_class_name;
 
     Object *call(const std::vector<Object *> &args) override
     {
@@ -92,6 +93,11 @@ struct Function : Callable
     int arity() const override
     {
         return m_fst->m_params.size();
+    }
+
+    string debug_info() const override
+    {
+        return "fun " + m_fst->m_name.m_lexeme;
     }
 
     string to_str() const override
@@ -137,6 +143,11 @@ struct LambdaFunction : Callable
     int arity() const override
     {
         return m_l->m_params.size();
+    }
+
+    string debug_info() const override
+    {
+        return "lambda";
     }
 
     string to_str() const override
@@ -243,6 +254,11 @@ struct Class : ClassBase
         }
 
         return it->second->arity();
+    }
+
+    string debug_info() const override
+    {
+        return "method " + m_cst->m_name.m_lexeme + "._init_";
     }
 
     string to_str() const override
@@ -447,7 +463,7 @@ struct SetRecursionDepth : Callable
 };
 
 Interpreter::Interpreter(istream &in, ostream &out)
-    : m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
+    : m_env(this), m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
 {
     m_env.add_scope(Environment::ScopeType::Global);
 
@@ -732,6 +748,11 @@ Object *Interpreter::visit_call_expr(Call *e)
             args.push_back(evaluate(arg));
         }
 
+        DebugManager debug_manager(this);
+        m_debug_info.back().m_line = e->m_line;
+        m_debug_info.back().m_name = "call expression";
+        m_debug_info.back().m_call_info = "method " + p->m_name.m_lexeme;
+
         return o->call_method(p->m_name.m_lexeme, args);
     }
 
@@ -759,6 +780,7 @@ Object *Interpreter::visit_call_expr(Call *e)
     DebugManager debug_manager(this);
     m_debug_info.back().m_line = e->m_line;
     m_debug_info.back().m_name = "call expression";
+    m_debug_info.back().m_call_info = c->debug_info();
 
     return c->call(args);
 }
@@ -1178,6 +1200,7 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
         Function *fn = dynamic_cast<Function *>(GC::instance().new_object<Function>());
         fn->m_interp = this;
         fn->m_fst = f.get();
+        fn->m_class_name = e->m_name.m_lexeme;
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
         {
             throw runtime_error(report_error("duplicate method '" + fn->m_fst->m_name.m_lexeme + "' in class '" + cl->m_cst->m_name.m_lexeme + "'"));
@@ -1203,20 +1226,19 @@ std::string Interpreter::report_error(std::string desc)
     ostringstream res;
 
     res << "Execution error\n";
-    res << "line " << get_curr_error_line() << ": <" << get_curr_error_element() << "> " << desc << "\n";
+    res << "    line " << get_curr_error_line() << ": <" << get_curr_error_element() << "> " << desc << "\n";
 
-    res << "---\n";
     res << "Call stack\n";
 
     for (auto i = m_debug_info.rbegin(); i != m_debug_info.rend(); ++i)
     {
         if (i->m_name == "call expression")
         {
-            res << "call (at line " << i->m_line << ")\n";
+            res << "    " << i->m_call_info << " (at line " << i->m_line << ")\n";
         }
     }
 
-    res << "script: main";
+    res << "    script: main";
 
     return res.str();
 }
