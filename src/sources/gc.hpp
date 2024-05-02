@@ -6,6 +6,8 @@
 
 namespace halo
 {
+    class Interpreter;
+
     enum class ObjectType
     {
         Object,
@@ -23,6 +25,7 @@ namespace halo
     class GC
     {
         std::list<Object *> m_objects;
+        Interpreter *m_interp;
 
         GC()
         {
@@ -33,6 +36,16 @@ namespace halo
         {
             static GC inst;
             return inst;
+        }
+
+        void set_interp(Interpreter *interp)
+        {
+            m_interp = interp;
+        }
+
+        Interpreter *get_interp()
+        {
+            return m_interp;
         }
 
         ~GC()

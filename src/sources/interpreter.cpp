@@ -465,6 +465,8 @@ struct SetRecursionDepth : Callable
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_env(this), m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
 {
+    GC::instance().set_interp(this);
+
     m_env.add_scope(Environment::ScopeType::Global);
 
     PrintLine *pl = dynamic_cast<PrintLine *>(GC::instance().new_object<PrintLine>());
