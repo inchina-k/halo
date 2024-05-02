@@ -12,7 +12,16 @@ namespace halo
 
     struct Expr
     {
-        virtual ~Expr() {}
+        size_t m_line;
+
+        Expr(size_t line = 0)
+            : m_line(line)
+        {
+        }
+
+        virtual ~Expr()
+        {
+        }
 
         virtual Object *visit(ExprVisitor *v) = 0;
     };
@@ -21,8 +30,8 @@ namespace halo
     {
         Expr *expr;
 
-        Grouping(Expr *e)
-            : expr(e)
+        Grouping(Expr *e, size_t line)
+            : Expr(line), expr(e)
         {
         }
 
@@ -35,8 +44,8 @@ namespace halo
         Expr *m_left;
         Expr *m_right;
 
-        BinaryExpr(Token t, Expr *l, Expr *r)
-            : m_token(t), m_left(l), m_right(r)
+        BinaryExpr(Token t, Expr *l, Expr *r, size_t line)
+            : Expr(line), m_token(t), m_left(l), m_right(r)
         {
         }
 
@@ -49,8 +58,8 @@ namespace halo
         Expr *m_left;
         Expr *m_right;
 
-        LogicalExpr(Token t, Expr *l, Expr *r)
-            : m_token(t), m_left(l), m_right(r)
+        LogicalExpr(Token t, Expr *l, Expr *r, size_t line)
+            : Expr(line), m_token(t), m_left(l), m_right(r)
         {
         }
 
@@ -62,8 +71,8 @@ namespace halo
         Token m_token;
         Expr *m_expr;
 
-        UnaryExpr(Token t, Expr *e)
-            : m_token(t), m_expr(e)
+        UnaryExpr(Token t, Expr *e, size_t line)
+            : Expr(line), m_token(t), m_expr(e)
         {
         }
 
@@ -75,8 +84,8 @@ namespace halo
         Expr *m_expr;
         std::vector<Expr *> m_args;
 
-        Call(Expr *e, const std::vector<Expr *> &a)
-            : m_expr(e), m_args(a)
+        Call(Expr *e, const std::vector<Expr *> &a, size_t line)
+            : Expr(line), m_expr(e), m_args(a)
         {
         }
 
@@ -88,8 +97,8 @@ namespace halo
         Expr *m_expr;
         Token m_name;
 
-        Dot(Expr *e, Token t)
-            : m_expr(e), m_name(t)
+        Dot(Expr *e, Token t, size_t line)
+            : Expr(line), m_expr(e), m_name(t)
         {
         }
 
@@ -101,8 +110,8 @@ namespace halo
         Expr *m_expr;
         Expr *m_index;
 
-        Subscript(Expr *e, Expr *index)
-            : m_expr(e), m_index(index)
+        Subscript(Expr *e, Expr *index, size_t line)
+            : Expr(line), m_expr(e), m_index(index)
         {
         }
 
@@ -114,8 +123,8 @@ namespace halo
         Token m_token;
         Object *m_val;
 
-        Literal(Token t)
-            : m_token(t), m_val(nullptr)
+        Literal(Token t, size_t line)
+            : Expr(line), m_token(t), m_val(nullptr)
         {
         }
 
@@ -126,8 +135,8 @@ namespace halo
     {
         Token m_token;
 
-        Var(Token t)
-            : m_token(t)
+        Var(Token t, size_t line)
+            : Expr(line), m_token(t)
         {
         }
 
@@ -142,7 +151,7 @@ namespace halo
         std::vector<Token> m_params;
         std::vector<std::unique_ptr<Stmt>> m_body;
 
-        Lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body);
+        Lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body, size_t line);
 
         Object *visit(ExprVisitor *v) override;
     };
@@ -151,8 +160,8 @@ namespace halo
     {
         std::vector<Expr *> m_params;
 
-        ListExpr(const std::vector<Expr *> &params)
-            : m_params(params)
+        ListExpr(const std::vector<Expr *> &params, size_t line)
+            : Expr(line), m_params(params)
         {
         }
 

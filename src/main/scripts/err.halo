@@ -1,0 +1,13 @@
+fun f():
+    return g();
+end
+
+fun g():
+    println(42 + "hello");
+end
+
+var main = lambda[]():
+    f();
+end;
+
+main();

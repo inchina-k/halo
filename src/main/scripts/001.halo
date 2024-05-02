@@ -1,2 +1,2 @@
-var s = "hello";
+var s = 2 / 0;
 let s[0] = "H";

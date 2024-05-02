@@ -1,6 +1,7 @@
 #include "Interpreter.hpp"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <algorithm>
 
@@ -67,7 +68,7 @@ struct Function : Callable
     Object *call(const std::vector<Object *> &args) override
     {
         FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun);
-        m_interp->inc_fun_scope_counter(m_fst->m_name.m_line);
+        m_interp->inc_fun_scope_counter();
 
         for (size_t i = 0; i < args.size(); ++i)
         {
@@ -105,50 +106,10 @@ struct LambdaFunction : Callable
     Lambda *m_l = nullptr;
     std::unordered_map<std::string, Object *> m_capture;
 
-    // struct LambdaScope
-    // {
-    //     Interpreter &m_interp;
-    //     LambdaFunction &m_lf;
-    //     Environment m_env;
-
-    //     LambdaScope(Interpreter &interp, LambdaFunction &lf)
-    //         : m_interp(interp), m_lf(lf)
-    //     {
-    //         m_env.m_data.push_back(interp.get_env().m_data[0]);
-    //         m_env.m_data.push_back(lf.m_capture);
-    //         m_interp.get_env().swap_env(m_env);
-    //     }
-
-    //     ~LambdaScope()
-    //     {
-    //         m_env.m_data[0] = m_interp.get_env().m_data[0];
-    //         m_lf.m_capture = m_interp.get_env().m_data[1];
-    //         m_interp.get_env().swap_env(m_env);
-    //     }
-    // };
-
     Object *call(const std::vector<Object *> &args) override
     {
-        // LambdaScope lscope(*m_interp, *this);
-        // m_interp->get_env().m_data.emplace_back();
-        // m_interp->get_env().m_scopes.push_back(Environment::ScopeType::Lambda);
-
-        // for (size_t i = 0; i < args.size(); ++i)
-        // {
-        //     m_interp->get_env().define(m_l->m_params[i], args[i]);
-        // }
-
-        // try
-        // {
-        //     m_interp->execute(m_l->m_body);
-        // }
-        // catch (const ReturnSignal &rs)
-        // {
-        //     return rs.m_res;
-        // }
-
         FunScope fc(m_interp->get_env(), Environment::ScopeType::Lambda);
-        m_interp->inc_fun_scope_counter(0);
+        m_interp->inc_fun_scope_counter();
         for (size_t i = 0; i < args.size(); ++i)
         {
             m_interp->get_env().define(m_l->m_params[i], args[i]);
@@ -156,10 +117,6 @@ struct LambdaFunction : Callable
 
         FunScope fc2(m_interp->get_env(), Environment::ScopeType::Capture);
         m_interp->get_env().m_data.back() = move(m_capture);
-        // for (const auto &[k, v] : m_capture)
-        // {
-        //     m_interp->get_env().define(Token(TokenType::Identifier, k, 0, 0), v);
-        // }
 
         try
         {
@@ -214,7 +171,7 @@ struct Class : ClassBase
         Function *init = it->second;
 
         FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun); // fun _init_
-        m_interp->inc_fun_scope_counter(init->m_fst->m_name.m_line);
+        m_interp->inc_fun_scope_counter();
 
         m_interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
 
@@ -243,18 +200,18 @@ struct Class : ClassBase
 
         if (it == m_methods.end())
         {
-            throw runtime_error("Execution error\nname '" + name + "' is not defined");
+            throw runtime_error(m_interp->report_error("name '" + name + "' is not defined"));
         }
 
         Function *method = it->second;
 
         if (method->arity() != int(args.size()))
         {
-            throw runtime_error("Execution error\n<call expression> incorrect number of arguments for '" + method->to_str() + "'");
+            throw runtime_error(m_interp->report_error("incorrect number of arguments for '" + method->to_str() + "'"));
         }
 
         FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun);
-        m_interp->inc_fun_scope_counter(method->m_fst->m_name.m_line);
+        m_interp->inc_fun_scope_counter();
 
         m_interp->get_env().define(Token(TokenType::Var, "my", 0, 0), my);
 
@@ -439,11 +396,11 @@ struct ToStr : Callable
 
 struct GetRecursionDepth : Callable
 {
-    Interpreter *interp = nullptr;
+    Interpreter *m_interp = nullptr;
 
     Object *call([[maybe_unused]] const std::vector<Object *> &args) override
     {
-        interp->get_out() << interp->get_recursion_depth() << endl;
+        m_interp->get_out() << m_interp->get_recursion_depth() << endl;
         return nullptr;
     }
 
@@ -460,7 +417,7 @@ struct GetRecursionDepth : Callable
 
 struct SetRecursionDepth : Callable
 {
-    Interpreter *interp = nullptr;
+    Interpreter *m_interp = nullptr;
 
     Object *call(const std::vector<Object *> &args) override
     {
@@ -468,14 +425,14 @@ struct SetRecursionDepth : Callable
         {
             if (depth->m_val > 0)
             {
-                interp->set_recursion_depth(depth->m_val);
+                m_interp->set_recursion_depth(depth->m_val);
                 return nullptr;
             }
 
-            throw runtime_error("Execution error\n<native fun> invalid depth value in 'set_recursion_depth'");
+            throw runtime_error(m_interp->report_error("invalid depth value in 'set_recursion_depth'"));
         }
 
-        throw runtime_error("Execution error\n<native fun> invalid argument type in 'set_recursion_depth'");
+        throw runtime_error(m_interp->report_error("invalid argument type in 'set_recursion_depth'"));
     }
 
     int arity() const override
@@ -507,11 +464,11 @@ Interpreter::Interpreter(istream &in, ostream &out)
     m_env.define(Token(TokenType::Var, "readln", 0, 0), rl);
 
     GetRecursionDepth *grd = dynamic_cast<GetRecursionDepth *>(GC::instance().new_object<GetRecursionDepth>());
-    grd->interp = this;
+    grd->m_interp = this;
     m_env.define(Token(TokenType::Var, "get_recursion_depth", 0, 0), grd);
 
     SetRecursionDepth *srd = dynamic_cast<SetRecursionDepth *>(GC::instance().new_object<SetRecursionDepth>());
-    srd->interp = this;
+    srd->m_interp = this;
     m_env.define(Token(TokenType::Var, "set_recursion_depth", 0, 0), srd);
 
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
@@ -557,6 +514,10 @@ Object *Interpreter::visit_grouping(Grouping *e)
 
 Object *Interpreter::visit_binary_expr(BinaryExpr *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "binary expression";
+
     Object *o1 = evaluate(e->m_left);
     Object *o2 = evaluate(e->m_right);
 
@@ -579,7 +540,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Minus:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, minus<long long>()))
         {
@@ -593,7 +554,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Mul:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, multiplies<long long>()))
         {
@@ -607,7 +568,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Div:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, divides<long long>()))
         {
@@ -621,13 +582,13 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Mod:
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, modulus<long long>()))
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Less:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, less<long long>()))
         {
@@ -641,7 +602,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::LessEqual:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, less_equal<long long>()))
         {
@@ -655,7 +616,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Greater:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, greater<long long>()))
         {
@@ -669,7 +630,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::GreaterEqual:
         if (Object *res = bin_op<Int, ObjectType::Bool, Bool>(o1, o2, greater_equal<long long>()))
         {
@@ -683,7 +644,7 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         {
             return res;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> incorrect operand types for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::EqualEqual:
     {
         Object *r = GC::instance().new_object(ObjectType::Bool);
@@ -697,12 +658,16 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         return r;
     }
     default:
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <binary expression> unknown operator '" + e->m_token.m_lexeme + "'");
+        throw runtime_error(report_error("unknown operator '" + e->m_token.m_lexeme + "'"));
     }
 }
 
 Object *Interpreter::visit_logical_expr(LogicalExpr *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "logical expression";
+
     Object *left = evaluate(e->m_left);
 
     if (e->m_token.m_type == TokenType::Or && is_true(left))
@@ -720,6 +685,10 @@ Object *Interpreter::visit_logical_expr(LogicalExpr *e)
 
 Object *Interpreter::visit_unary_expr(UnaryExpr *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "unary expression";
+
     Object *o = evaluate(e->m_expr);
 
     switch (e->m_token.m_type)
@@ -743,10 +712,10 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
             static_cast<Float *>(r)->m_val = -f->m_val;
             return r;
         }
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <unary expression> incorrect operand type for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand type for '" + e->m_token.m_lexeme + "' operator"));
 
     default:
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <unary expression> incorrect operand type for '" + e->m_token.m_lexeme + "' operator");
+        throw runtime_error(report_error("incorrect operand type for '" + e->m_token.m_lexeme + "' operator"));
     }
 }
 
@@ -772,12 +741,12 @@ Object *Interpreter::visit_call_expr(Call *e)
 
     if (!c)
     {
-        throw runtime_error("Execution error\n<call expression> '" + o->to_str() + "' is not a function or lambda");
+        throw runtime_error(report_error("'" + o->to_str() + "' is not a function or lambda"));
     }
 
     if (c->arity() != int(e->m_args.size()))
     {
-        throw runtime_error("Execution error\n<call expression> incorrect number of arguments for '" + c->to_str() + "'");
+        throw runtime_error(report_error("incorrect number of arguments for '" + c->to_str() + "'"));
     }
 
     vector<Object *> args;
@@ -787,17 +756,29 @@ Object *Interpreter::visit_call_expr(Call *e)
         args.push_back(evaluate(arg));
     }
 
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "call expression";
+
     return c->call(args);
 }
 
 Object *Interpreter::visit_dot_expr(Dot *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "dot expression";
+
     Object *o = evaluate(e->m_expr);
     return o->get_field(e->m_name.m_lexeme);
 }
 
 Object *Interpreter::visit_subscript_expr(Subscript *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "subscript expression";
+
     Object *expr = evaluate(e->m_expr);
 
     if (auto s = dynamic_cast<String *>(expr))
@@ -814,6 +795,10 @@ Object *Interpreter::visit_subscript_expr(Subscript *e)
 
 Object *Interpreter::visit_literal(Literal *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "literal";
+
     if (e->m_val)
     {
         return e->m_val;
@@ -849,7 +834,7 @@ Object *Interpreter::visit_literal(Literal *e)
         return o;
     }
     default:
-        throw runtime_error("Execution error\nline " + to_string(e->m_token.m_line) + ": <literal> unknown literal '" + e->m_token.m_lexeme + "'");
+        throw runtime_error(report_error("unknown literal '" + e->m_token.m_lexeme + "'"));
     }
 }
 
@@ -885,11 +870,19 @@ bool Interpreter::is_true(Object *o)
 
 Object *Interpreter::visit_var(Var *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "variable";
+
     return m_env.get(e->m_token);
 }
 
 Object *Interpreter::visit_lambda(Lambda *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "lambda";
+
     LambdaFunction *lf = dynamic_cast<LambdaFunction *>(GC::instance().new_object<LambdaFunction>());
     lf->m_interp = this;
     lf->m_l = e;
@@ -902,6 +895,10 @@ Object *Interpreter::visit_lambda(Lambda *e)
 
 Object *Interpreter::visit_list(ListExpr *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "list";
+
     Object *o = GC::instance().new_object(ObjectType::List);
     vector<Object *> vals;
     for (auto el : e->m_params)
@@ -914,11 +911,19 @@ Object *Interpreter::visit_list(ListExpr *e)
 
 void Interpreter::visit_var_stmt(VarStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "var statement";
+
     m_env.define(e->m_token, e->m_expr ? evaluate(e->m_expr) : nullptr);
 }
 
 void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "assignment statement";
+
     if (auto p = dynamic_cast<Var *>(e->m_lval))
     {
         m_env.assign(p->m_token, evaluate(e->m_expr));
@@ -941,16 +946,24 @@ void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
         return;
     }
 
-    throw runtime_error("Execution error\n<assignment statement> can be used only with variables or object fields");
+    throw runtime_error(report_error("can be used only with variables or object fields"));
 }
 
 void Interpreter::visit_expression_stmt(ExpressionStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "expression statement";
+
     evaluate(e->m_expr);
 }
 
 void Interpreter::visit_if_stmt(IfStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "if statement";
+
     for (size_t i = 0; i < e->m_conds.size(); ++i)
     {
         Object *o = evaluate(e->m_conds[i]);
@@ -972,6 +985,10 @@ void Interpreter::visit_if_stmt(IfStmt *e)
 
 void Interpreter::visit_while_stmt(WhileStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "while statement";
+
     try
     {
         while (is_true(evaluate(e->m_cond)))
@@ -995,6 +1012,10 @@ void Interpreter::visit_while_stmt(WhileStmt *e)
 
 void Interpreter::visit_for_stmt(ForStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "for statement";
+
     try
     {
         if (e->m_begin)
@@ -1016,22 +1037,22 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             Int *ibegin = dynamic_cast<Int *>(begin);
             if (!ibegin)
             {
-                throw runtime_error("Execution error\n<for statement> begin in range must be integer");
+                throw runtime_error(report_error("first index in range must be an integer"));
             }
             Int *iend = dynamic_cast<Int *>(end);
             if (!iend)
             {
-                throw runtime_error("Execution error\n<for statement> end in range must be integer");
+                throw runtime_error(report_error("last index in range must be an integer"));
             }
             Int *istep = dynamic_cast<Int *>(step);
             if (!istep)
             {
-                throw runtime_error("Execution error\n<for statement> step in range must be integer");
+                throw runtime_error(report_error("step in range must be an integer"));
             }
 
             if (istep->m_val == 0)
             {
-                throw runtime_error("Execution error\n<for statement> step in range must not be 0");
+                throw runtime_error(report_error("step in range must not be 0"));
             }
 
             for (long long i = ibegin->m_val; istep->m_val > 0 ? i < iend->m_val : i > iend->m_val; i += istep->m_val)
@@ -1061,7 +1082,7 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             }
             catch (const std::exception &)
             {
-                throw runtime_error("Execution error\n<for> uniterable object");
+                throw runtime_error(report_error("uniterable object"));
             }
 
             try
@@ -1092,7 +1113,7 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             }
             catch (const std::exception &)
             {
-                throw runtime_error("Execution error\n<for> invalid iterator");
+                throw runtime_error(report_error("invalid iterator"));
             }
         }
     }
@@ -1104,16 +1125,28 @@ void Interpreter::visit_for_stmt(ForStmt *e)
 
 void Interpreter::visit_break_stmt([[maybe_unused]] BreakStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "break statement";
+
     throw BreakSignal();
 }
 
 void Interpreter::visit_continue_stmt([[maybe_unused]] ContinueStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "continue statement";
+
     throw ContinueSignal();
 }
 
 void Interpreter::visit_fun_stmt(FunStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "fun statement";
+
     Function *fn = dynamic_cast<Function *>(GC::instance().new_object<Function>());
     fn->m_interp = this;
     fn->m_fst = e;
@@ -1122,12 +1155,20 @@ void Interpreter::visit_fun_stmt(FunStmt *e)
 
 void Interpreter::visit_return_stmt(ReturnStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "return statement";
+
     Object *r = e->m_expr == nullptr ? nullptr : evaluate(e->m_expr);
     throw ReturnSignal(r);
 }
 
 void Interpreter::visit_class_stmt(ClassStmt *e)
 {
+    DebugManager debug_manager(this);
+    m_debug_info.back().m_line = e->m_line;
+    m_debug_info.back().m_name = "class statement";
+
     Class *cl = dynamic_cast<Class *>(GC::instance().new_object<Class>());
     cl->m_interp = this;
     cl->m_cst = e;
@@ -1139,10 +1180,43 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
         fn->m_fst = f.get();
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
         {
-            throw runtime_error("Execution error\nline " + to_string(fn->m_fst->m_name.m_line) + ": <class statement> duplicate method '" + fn->m_fst->m_name.m_lexeme + "' in class '" + cl->m_cst->m_name.m_lexeme + "'");
+            throw runtime_error(report_error("duplicate method '" + fn->m_fst->m_name.m_lexeme + "' in class '" + cl->m_cst->m_name.m_lexeme + "'"));
         }
         cl->m_methods.emplace(fn->m_fst->m_name.m_lexeme, fn);
     }
 
     m_env.define(Token(TokenType::Var, cl->m_cst->m_name.m_lexeme, 0, 0), cl);
+}
+
+size_t Interpreter::get_curr_error_line()
+{
+    return m_debug_info.empty() ? 0 : m_debug_info.back().m_line;
+}
+
+std::string Interpreter::get_curr_error_element()
+{
+    return m_debug_info.empty() ? "" : m_debug_info.back().m_name;
+}
+
+std::string Interpreter::report_error(std::string desc)
+{
+    ostringstream res;
+
+    res << "Execution error\n";
+    res << "line " << get_curr_error_line() << ": <" << get_curr_error_element() << "> " << desc << "\n";
+
+    res << "---\n";
+    res << "Call stack\n";
+
+    for (auto i = m_debug_info.rbegin(); i != m_debug_info.rend(); ++i)
+    {
+        if (i->m_name == "call expression")
+        {
+            res << "call (at line " << i->m_line << ")\n";
+        }
+    }
+
+    res << "script: main";
+
+    return res.str();
 }

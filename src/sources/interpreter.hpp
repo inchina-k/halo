@@ -15,8 +15,33 @@
 
 namespace halo
 {
+
     class Interpreter : public ExprVisitor, public StmtVisitor
     {
+        struct DebugInfo
+        {
+            size_t m_line;
+            std::string m_name;
+        };
+
+        struct DebugManager
+        {
+            Interpreter *m_interp;
+
+            DebugManager(Interpreter *interp)
+                : m_interp(interp)
+            {
+                m_interp->m_debug_info.emplace_back();
+            }
+
+            ~DebugManager()
+            {
+                m_interp->m_debug_info.pop_back();
+            }
+        };
+
+        std::vector<DebugInfo> m_debug_info;
+
         Environment m_env;
         std::istream &m_in;
         std::ostream &m_out;
@@ -81,8 +106,14 @@ namespace halo
 
         static bool is_true(Object *o);
 
+        size_t get_curr_error_line();
+
+        std::string get_curr_error_element();
+
     public:
         Interpreter(std::istream &in = std::cin, std::ostream &out = std::cout);
+
+        std::string report_error(std::string desc);
 
         Environment &get_env()
         {
@@ -109,13 +140,13 @@ namespace halo
             m_max_fun_depth = depth;
         }
 
-        void inc_fun_scope_counter(size_t line)
+        void inc_fun_scope_counter()
         {
             ++m_fun_scope_counter;
 
             if (m_fun_scope_counter > m_max_fun_depth)
             {
-                throw std::runtime_error("Execution error\nline " + std::to_string(line) + ": <callable> max function depth exceeded '" + std::to_string(m_max_fun_depth) + "'");
+                throw std::runtime_error(report_error("max function depth exceeded '" + std::to_string(m_max_fun_depth) + "'"));
             }
         }
 

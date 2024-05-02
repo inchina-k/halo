@@ -7,69 +7,69 @@
 using namespace std;
 using namespace halo;
 
-Expr *Parser::alloc_grouping(Expr *e)
-{
-    m_nodes.push_back(make_unique<Grouping>(e));
-    return m_nodes.back().get();
-}
+// Expr *Parser::alloc_grouping(Expr *e)
+// {
+//     m_nodes.push_back(make_unique<Grouping>(e));
+//     return m_nodes.back().get();
+// }
 
 Expr *Parser::alloc_binary_expr(Token t, Expr *l, Expr *r)
 {
-    m_nodes.push_back(make_unique<BinaryExpr>(t, l, r));
+    m_nodes.push_back(make_unique<BinaryExpr>(t, l, r, t.m_line));
     return m_nodes.back().get();
 }
 
 Expr *Parser::alloc_logical_expr(Token t, Expr *l, Expr *r)
 {
-    m_nodes.push_back(make_unique<LogicalExpr>(t, l, r));
+    m_nodes.push_back(make_unique<LogicalExpr>(t, l, r, t.m_line));
     return m_nodes.back().get();
 }
 
 Expr *Parser::alloc_unary_expr(Token t, Expr *e)
 {
-    m_nodes.push_back(make_unique<UnaryExpr>(t, e));
+    m_nodes.push_back(make_unique<UnaryExpr>(t, e, t.m_line));
     return m_nodes.back().get();
 }
 
-Expr *Parser::alloc_call_expr(Expr *e, const std::vector<Expr *> &p)
+Expr *Parser::alloc_call_expr(Expr *e, const std::vector<Expr *> &p, size_t line)
 {
-    m_nodes.push_back(make_unique<Call>(e, p));
+    m_nodes.push_back(make_unique<Call>(e, p, line));
     return m_nodes.back().get();
 }
 
 Expr *Parser::alloc_dot_expr(Expr *e, Token t)
 {
-    m_nodes.push_back(make_unique<Dot>(e, t));
+    m_nodes.push_back(make_unique<Dot>(e, t, t.m_line));
     return m_nodes.back().get();
 }
 
-Expr *Parser::alloc_subscript_expr(Expr *e, Expr *index)
+Expr *Parser::alloc_subscript_expr(Expr *e, Expr *index, size_t line)
 {
-    m_nodes.push_back(make_unique<Subscript>(e, index));
+    m_nodes.push_back(make_unique<Subscript>(e, index, line));
     return m_nodes.back().get();
 }
 
 Expr *Parser::alloc_literal(Token t)
 {
-    m_nodes.push_back(make_unique<Literal>(t));
+    m_nodes.push_back(make_unique<Literal>(t, t.m_line));
     return m_nodes.back().get();
 }
 
 Expr *Parser::alloc_var(Token t)
 {
-    m_nodes.push_back(make_unique<Var>(t));
+    m_nodes.push_back(make_unique<Var>(t, t.m_line));
     return m_nodes.back().get();
 }
 
-Expr *Parser::alloc_lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
+Expr *Parser::alloc_lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body, size_t line)
 {
-    m_nodes.push_back(make_unique<Lambda>(capture, params, move(body)));
+    m_nodes.push_back(make_unique<Lambda>(capture, params, move(body), line));
     return m_nodes.back().get();
 }
 
-Expr *Parser::alloc_list(const std::vector<Expr *> &params)
+Expr *Parser::alloc_list(const std::vector<Expr *> &params, size_t line)
 {
-    m_nodes.push_back(make_unique<ListExpr>(params));
+    m_nodes.push_back(make_unique<ListExpr>(params, line));
     return m_nodes.back().get();
 }
 
@@ -84,7 +84,7 @@ void Parser::parse()
     {
         while (peek().m_type != TokenType::Eof)
         {
-            m_stmts.emplace_back(statement());
+            m_stmts.emplace_back(statement(peek().m_line));
         }
     }
     catch (const exception &e)
@@ -94,63 +94,63 @@ void Parser::parse()
     }
 }
 
-Stmt *Parser::statement()
+Stmt *Parser::statement(size_t line)
 {
     if (match(TokenType::Var))
     {
-        return var_statement();
+        return var_statement(line);
     }
 
     if (match(TokenType::Let))
     {
-        return assignment_statement();
+        return assignment_statement(line);
     }
 
     if (match(TokenType::If))
     {
-        return if_statement();
+        return if_statement(line);
     }
 
     if (match(TokenType::While))
     {
-        return while_statement();
+        return while_statement(line);
     }
 
     if (match(TokenType::For))
     {
-        return for_statement();
+        return for_statement(line);
     }
 
     if (match(TokenType::Break))
     {
-        return break_statement();
+        return break_statement(line);
     }
 
     if (match(TokenType::Continue))
     {
-        return continue_statement();
+        return continue_statement(line);
     }
 
     if (match(TokenType::Fun))
     {
-        return fun_statement();
+        return fun_statement(line);
     }
 
     if (match(TokenType::Return))
     {
-        return return_statement();
+        return return_statement(line);
     }
 
     if (match(TokenType::Class))
     {
-        return class_statement();
+        return class_statement(line);
     }
 
-    return expression_statement();
+    return expression_statement(line);
     // throw runtime_error("unknown statement");
 }
 
-Stmt *Parser::var_statement()
+Stmt *Parser::var_statement(size_t line)
 {
     Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <var statement> expected variable name");
 
@@ -163,10 +163,10 @@ Stmt *Parser::var_statement()
 
     consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <var statement> expected ';' symbol");
 
-    return new VarStmt(name, e);
+    return new VarStmt(name, e, line);
 }
 
-Stmt *Parser::assignment_statement()
+Stmt *Parser::assignment_statement(size_t line)
 {
     // Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected variable name");
     Expr *lval = call();
@@ -180,22 +180,22 @@ Stmt *Parser::assignment_statement()
         Expr *e = expr();
         consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected ';' symbol");
 
-        return new AssignmentStmt(lval, e);
+        return new AssignmentStmt(lval, e, line);
     }
 
     throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> can be used only with variables or object fields");
 }
 
-Stmt *Parser::expression_statement()
+Stmt *Parser::expression_statement(size_t line)
 {
     Expr *e = expr();
 
     consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <expression statement> expected ';' symbol");
 
-    return new ExpressionStmt(e);
+    return new ExpressionStmt(e, line);
 }
 
-Stmt *Parser::if_statement()
+Stmt *Parser::if_statement(size_t line)
 {
     m_scopes.push_back(Scopes::If);
 
@@ -216,7 +216,7 @@ Stmt *Parser::if_statement()
                peek().m_type != TokenType::Elif &&
                peek().m_type != TokenType::Else)
         {
-            then_branches.back().emplace_back(statement());
+            then_branches.back().emplace_back(statement(peek().m_line));
         }
 
     } while (match(TokenType::Elif));
@@ -232,7 +232,7 @@ Stmt *Parser::if_statement()
 
         while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End)
         {
-            else_branch.emplace_back(statement());
+            else_branch.emplace_back(statement(peek().m_line));
         }
 
         if (peek().m_type == TokenType::Eof)
@@ -245,10 +245,10 @@ Stmt *Parser::if_statement()
 
     m_scopes.pop_back();
 
-    return new IfStmt(conds, move(then_branches), move(else_branch));
+    return new IfStmt(conds, move(then_branches), move(else_branch), line);
 }
 
-Stmt *Parser::while_statement()
+Stmt *Parser::while_statement(size_t line)
 {
     m_scopes.push_back(Scopes::While);
 
@@ -260,7 +260,7 @@ Stmt *Parser::while_statement()
     while (peek().m_type != TokenType::Eof &&
            peek().m_type != TokenType::End)
     {
-        do_branch.emplace_back(statement());
+        do_branch.emplace_back(statement(peek().m_line));
     }
 
     if (peek().m_type == TokenType::Eof)
@@ -272,10 +272,10 @@ Stmt *Parser::while_statement()
 
     m_scopes.pop_back();
 
-    return new WhileStmt(cond, move(do_branch));
+    return new WhileStmt(cond, move(do_branch), line);
 }
 
-Stmt *Parser::for_statement()
+Stmt *Parser::for_statement(size_t line)
 {
     m_scopes.push_back(Scopes::For);
 
@@ -331,7 +331,7 @@ Stmt *Parser::for_statement()
     while (peek().m_type != TokenType::Eof &&
            peek().m_type != TokenType::End)
     {
-        do_branch.emplace_back(statement());
+        do_branch.emplace_back(statement(peek().m_line));
     }
 
     if (peek().m_type == TokenType::Eof)
@@ -343,10 +343,10 @@ Stmt *Parser::for_statement()
 
     m_scopes.pop_back();
 
-    return new ForStmt(identifier, begin, end, step, iterable, move(do_branch));
+    return new ForStmt(identifier, begin, end, step, iterable, move(do_branch), line);
 }
 
-Stmt *Parser::break_statement()
+Stmt *Parser::break_statement(size_t line)
 {
     if (!is_in_loop())
     {
@@ -355,10 +355,10 @@ Stmt *Parser::break_statement()
 
     consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <break statement> expected ';' symbol");
 
-    return new BreakStmt();
+    return new BreakStmt(line);
 }
 
-Stmt *Parser::continue_statement()
+Stmt *Parser::continue_statement(size_t line)
 {
     if (!is_in_loop())
     {
@@ -367,10 +367,10 @@ Stmt *Parser::continue_statement()
 
     consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <continue statement> expected ';' symbol");
 
-    return new ContinueStmt();
+    return new ContinueStmt(line);
 }
 
-Stmt *Parser::fun_statement()
+Stmt *Parser::fun_statement(size_t line)
 {
     if (!is_fun_allowed())
     {
@@ -415,7 +415,7 @@ Stmt *Parser::fun_statement()
     while (peek().m_type != TokenType::Eof &&
            peek().m_type != TokenType::End)
     {
-        body.emplace_back(statement());
+        body.emplace_back(statement(peek().m_line));
     }
 
     if (peek().m_type == TokenType::Eof)
@@ -427,10 +427,10 @@ Stmt *Parser::fun_statement()
 
     m_scopes.pop_back();
 
-    return new FunStmt(name, params, move(body));
+    return new FunStmt(name, params, move(body), line);
 }
 
-Stmt *Parser::return_statement()
+Stmt *Parser::return_statement(size_t line)
 {
     if (!is_in_callable())
     {
@@ -450,10 +450,10 @@ Stmt *Parser::return_statement()
 
     consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <return statement> expected ';' symbol");
 
-    return new ReturnStmt(exp);
+    return new ReturnStmt(exp, line);
 }
 
-Stmt *Parser::class_statement()
+Stmt *Parser::class_statement(size_t line)
 {
     if (!is_class_allowed())
     {
@@ -470,6 +470,8 @@ Stmt *Parser::class_statement()
 
     while (true)
     {
+        size_t fun_line = peek().m_line;
+
         if (match(TokenType::Var))
         {
             Token field = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected variable name");
@@ -478,7 +480,7 @@ Stmt *Parser::class_statement()
         }
         else if (match(TokenType::Fun))
         {
-            methods.emplace_back(static_cast<FunStmt *>(fun_statement()));
+            methods.emplace_back(static_cast<FunStmt *>(fun_statement(fun_line)));
         }
         else
         {
@@ -490,7 +492,7 @@ Stmt *Parser::class_statement()
 
     m_scopes.pop_back();
 
-    return new ClassStmt(name, fields, move(methods));
+    return new ClassStmt(name, fields, move(methods), line);
 }
 
 /*
@@ -616,6 +618,8 @@ Expr *Parser::call()
 
     while (true)
     {
+        size_t line = peek().m_line;
+
         if (match(TokenType::OpenPar))
         {
             vector<Expr *> args;
@@ -631,7 +635,7 @@ Expr *Parser::call()
             }
 
             consume(TokenType::ClosePar, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected ')' symbol");
-            callee = alloc_call_expr(callee, args);
+            callee = alloc_call_expr(callee, args, line);
         }
         else if (match(TokenType::Dot))
         {
@@ -642,7 +646,7 @@ Expr *Parser::call()
         {
             Expr *e = expr();
             consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected ']' symbol");
-            callee = alloc_subscript_expr(callee, e);
+            callee = alloc_subscript_expr(callee, e, line);
         }
         else
         {
@@ -694,6 +698,8 @@ Expr *Parser::primary()
 
 Expr *Parser::lambda()
 {
+    size_t line = m_tokens[m_curr - 1].m_line;
+
     if (!is_lambda_allowed())
     {
         throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> cannot be used in another lambda or as a class member");
@@ -750,7 +756,7 @@ Expr *Parser::lambda()
     while (peek().m_type != TokenType::Eof &&
            peek().m_type != TokenType::End)
     {
-        body.emplace_back(statement());
+        body.emplace_back(statement(peek().m_line));
     }
 
     if (peek().m_type == TokenType::Eof)
@@ -762,11 +768,13 @@ Expr *Parser::lambda()
 
     m_scopes.pop_back();
 
-    return alloc_lambda(capture, params, move(body));
+    return alloc_lambda(capture, params, move(body), line);
 }
 
 Expr *Parser::list()
 {
+    size_t line = m_tokens[m_curr - 1].m_line;
+
     vector<Expr *> args;
 
     if (peek().m_type != TokenType::CloseBracket)
@@ -781,7 +789,7 @@ Expr *Parser::list()
 
     consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <list expression> expected ']' symbol");
 
-    return alloc_list(args);
+    return alloc_list(args, line);
 }
 
 /*

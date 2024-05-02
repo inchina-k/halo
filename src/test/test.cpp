@@ -583,10 +583,10 @@ TEST_CASE("Expr classes")
         Token a(TokenType::IntLiteral, "2", 0, 0);
         Token b(TokenType::IntLiteral, "3", 0, 0);
 
-        Literal i1(a);
-        Literal i2(b);
+        Literal i1(a, 0);
+        Literal i2(b, 0);
 
-        Expr *e = new BinaryExpr(plus, &i1, &i2);
+        Expr *e = new BinaryExpr(plus, &i1, &i2, 0);
 
         e->visit(&ep);
 

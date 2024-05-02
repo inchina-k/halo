@@ -59,7 +59,7 @@ Object *ListExpr::visit(ExprVisitor *v)
     return v->visit_list(this);
 }
 
-Lambda::Lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
-    : m_capture(capture), m_params(params), m_body(std::move(body))
+Lambda::Lambda(const std::vector<Token> &capture, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body, size_t line)
+    : Expr(line), m_capture(capture), m_params(params), m_body(std::move(body))
 {
 }

@@ -13,6 +13,13 @@ namespace halo
 
     struct Stmt
     {
+        size_t m_line;
+
+        Stmt(size_t line = 0)
+            : m_line(line)
+        {
+        }
+
         virtual ~Stmt() {}
 
         virtual void visit(StmtVisitor *v) = 0;
@@ -23,8 +30,8 @@ namespace halo
         Token m_token;
         Expr *m_expr;
 
-        VarStmt(Token t, Expr *e)
-            : m_token(t), m_expr(e)
+        VarStmt(Token t, Expr *e, size_t line)
+            : Stmt(line), m_token(t), m_expr(e)
         {
         }
 
@@ -36,8 +43,8 @@ namespace halo
         Expr *m_lval;
         Expr *m_expr;
 
-        AssignmentStmt(Expr *lv, Expr *e)
-            : m_lval(lv), m_expr(e)
+        AssignmentStmt(Expr *lv, Expr *e, size_t line)
+            : Stmt(line), m_lval(lv), m_expr(e)
         {
         }
 
@@ -48,8 +55,8 @@ namespace halo
     {
         Expr *m_expr;
 
-        ExpressionStmt(Expr *e)
-            : m_expr(e)
+        ExpressionStmt(Expr *e, size_t line)
+            : Stmt(line), m_expr(e)
         {
         }
 
@@ -62,8 +69,8 @@ namespace halo
         std::vector<std::vector<std::unique_ptr<Stmt>>> m_then_branches;
         std::vector<std::unique_ptr<Stmt>> m_else_branch;
 
-        IfStmt(std::vector<Expr *> conds, std::vector<std::vector<std::unique_ptr<Stmt>>> then_branches, std::vector<std::unique_ptr<Stmt>> else_branch)
-            : m_conds(conds), m_then_branches(std::move(then_branches)), m_else_branch(std::move(else_branch))
+        IfStmt(std::vector<Expr *> conds, std::vector<std::vector<std::unique_ptr<Stmt>>> then_branches, std::vector<std::unique_ptr<Stmt>> else_branch, size_t line)
+            : Stmt(line), m_conds(conds), m_then_branches(std::move(then_branches)), m_else_branch(std::move(else_branch))
         {
         }
 
@@ -75,8 +82,8 @@ namespace halo
         Expr *m_cond;
         std::vector<std::unique_ptr<Stmt>> m_do_branch;
 
-        WhileStmt(Expr *cond, std::vector<std::unique_ptr<Stmt>> do_branch)
-            : m_cond(cond), m_do_branch(std::move(do_branch))
+        WhileStmt(Expr *cond, std::vector<std::unique_ptr<Stmt>> do_branch, size_t line)
+            : Stmt(line), m_cond(cond), m_do_branch(std::move(do_branch))
         {
         }
 
@@ -92,8 +99,8 @@ namespace halo
         Expr *m_iterable;
         std::vector<std::unique_ptr<Stmt>> m_do_branch;
 
-        ForStmt(Token identifier, Expr *begin, Expr *end, Expr *step, Expr *iterable, std::vector<std::unique_ptr<Stmt>> do_branch)
-            : m_identifier(identifier), m_begin(begin), m_end(end), m_step(step), m_iterable(iterable), m_do_branch(std::move(do_branch))
+        ForStmt(Token identifier, Expr *begin, Expr *end, Expr *step, Expr *iterable, std::vector<std::unique_ptr<Stmt>> do_branch, size_t line)
+            : Stmt(line), m_identifier(identifier), m_begin(begin), m_end(end), m_step(step), m_iterable(iterable), m_do_branch(std::move(do_branch))
         {
         }
 
@@ -102,11 +109,21 @@ namespace halo
 
     struct BreakStmt : Stmt
     {
+        BreakStmt(size_t line)
+            : Stmt(line)
+        {
+        }
+
         void visit(StmtVisitor *v) override;
     };
 
     struct ContinueStmt : Stmt
     {
+        ContinueStmt(size_t line)
+            : Stmt(line)
+        {
+        }
+
         void visit(StmtVisitor *v) override;
     };
 
@@ -116,8 +133,8 @@ namespace halo
         std::vector<Token> m_params;
         std::vector<std::unique_ptr<Stmt>> m_body;
 
-        FunStmt(Token name, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body)
-            : m_name(name), m_params(params), m_body(std::move(body))
+        FunStmt(Token name, const std::vector<Token> &params, std::vector<std::unique_ptr<Stmt>> body, size_t line)
+            : Stmt(line), m_name(name), m_params(params), m_body(std::move(body))
         {
         }
 
@@ -128,8 +145,8 @@ namespace halo
     {
         Expr *m_expr;
 
-        ReturnStmt(Expr *expr)
-            : m_expr(expr)
+        ReturnStmt(Expr *expr, size_t line)
+            : Stmt(line), m_expr(expr)
         {
         }
 
@@ -142,8 +159,8 @@ namespace halo
         std::set<std::string> m_fields;
         std::vector<std::unique_ptr<FunStmt>> m_methods;
 
-        ClassStmt(Token name, const std::set<std::string> &fields, std::vector<std::unique_ptr<FunStmt>> methods)
-            : m_name(name), m_fields(fields), m_methods(std::move(methods))
+        ClassStmt(Token name, const std::set<std::string> &fields, std::vector<std::unique_ptr<FunStmt>> methods, size_t line)
+            : Stmt(line), m_name(name), m_fields(fields), m_methods(std::move(methods))
         {
         }
 
