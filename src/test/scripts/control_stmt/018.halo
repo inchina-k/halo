@@ -1,0 +1,9 @@
+for i in (0, 5):
+    let i = i + 1;
+
+    if i == 3:
+        continue;
+    end
+
+    println(i);
+end

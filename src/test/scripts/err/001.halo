@@ -1,0 +1,13 @@
+class T:
+    fun f():
+        var lst = [1, 2, 3];
+        lst.put(4, 5);
+    end
+end
+
+fun main():
+    var t = T();
+    t.f();
+end
+
+main();

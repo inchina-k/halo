@@ -1,7 +1,6 @@
 #include "object.hpp"
 #include "gc.hpp"
 #include "token_type.hpp"
-#include "list_methods.hpp"
 #include "interpreter.hpp"
 #include <string>
 
@@ -55,6 +54,8 @@ Object *Object::call_method(const std::string &name, const std::vector<Object *>
     return m_type->call_method(this, name, args);
 }
 
+/* String */
+
 Object *String::get(Object *index)
 {
     if (auto i = dynamic_cast<Int *>(index))
@@ -72,13 +73,8 @@ Object *String::get(Object *index)
     throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type"));
 }
 
-Object *String::iter(Object *my, const std::vector<Object *> &args)
+Object *String::iter(Object *my)
 {
-    if (args.size() != 0)
-    {
-        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in '_iter_'"));
-    }
-
     auto str = dynamic_cast<String *>(my);
 
     Object *res = GC::instance().new_object(ObjectType::StringIter);
@@ -87,13 +83,68 @@ Object *String::iter(Object *my, const std::vector<Object *> &args)
     return res;
 }
 
-Object *StringIter::has_next(Object *my, const std::vector<Object *> &args)
+void String::check_method(const std::string &name, const std::vector<Object *> &args)
 {
-    if (args.size() != 0)
+    static unordered_map<string, size_t> methods = {{"substr", 2}, {"_iter_", 0}};
+
+    auto it = methods.find(name);
+
+    if (it == methods.end())
     {
-        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in '_has_next_'"));
+        throw runtime_error(GC::instance().get_interp()->report_error("name '" + name + "' is not defined in class " + get_name()));
     }
 
+    if (it->second != args.size())
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in method '" + name + "' in class " + get_name()));
+    }
+}
+
+Object *String::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
+{
+    if (name == "substr")
+    {
+        return substr(my, args);
+    }
+    else if (name == "_iter_")
+    {
+        return iter(my);
+    }
+
+    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "' in class " + get_name()));
+}
+
+Object *String::substr(Object *my, const std::vector<Object *> &args)
+{
+    auto arg1 = dynamic_cast<Int *>(args[0]);
+    auto arg2 = dynamic_cast<Int *>(args[1]);
+
+    if (!arg1 || !arg2)
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid argument type in method 'substr' in class " + get_name()));
+    }
+
+    auto str = dynamic_cast<String *>(my);
+
+    if (arg1->m_val < 0 || arg1->m_val > int(str->m_val.size() - 1))
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid index in method 'substr' in class " + get_name()));
+    }
+
+    if (arg2->m_val < 0)
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid range in method 'substr' in class " + get_name()));
+    }
+
+    Object *res = GC::instance().new_object(ObjectType::String);
+    dynamic_cast<String *>(res)->m_val = str->m_val.substr(arg1->m_val, arg2->m_val);
+    return res;
+}
+
+/* StringIter */
+
+Object *StringIter::has_next(Object *my)
+{
     auto str_iter = dynamic_cast<StringIter *>(my);
 
     Object *res = GC::instance().new_object(ObjectType::Bool);
@@ -101,13 +152,8 @@ Object *StringIter::has_next(Object *my, const std::vector<Object *> &args)
     return res;
 }
 
-Object *StringIter::next(Object *my, const std::vector<Object *> &args)
+Object *StringIter::next(Object *my)
 {
-    if (args.size() != 0)
-    {
-        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in '_next_'"));
-    }
-
     auto str_iter = dynamic_cast<StringIter *>(my);
 
     Object *res = GC::instance().new_object(ObjectType::String);
@@ -116,60 +162,38 @@ Object *StringIter::next(Object *my, const std::vector<Object *> &args)
     return res;
 }
 
-Object *String::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
+void StringIter::check_method(const std::string &name, const std::vector<Object *> &args)
 {
-    if (name == "substr")
+    static unordered_map<string, size_t> methods = {{"_next_", 0}, {"_has_next_", 0}};
+
+    auto it = methods.find(name);
+
+    if (it == methods.end())
     {
-        if (args.size() != 2)
-        {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in 'substr'"));
-        }
-
-        auto arg1 = dynamic_cast<Int *>(args[0]);
-        auto arg2 = dynamic_cast<Int *>(args[1]);
-
-        if (!arg1 || !arg2)
-        {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid argument type in 'substr'"));
-        }
-
-        auto str = dynamic_cast<String *>(my);
-
-        if (arg1->m_val < 0 || arg1->m_val > int(str->m_val.size() - 1))
-        {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid index in 'substr'"));
-        }
-
-        if (arg2->m_val < 0)
-        {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid range in 'substr'"));
-        }
-
-        Object *res = GC::instance().new_object(ObjectType::String);
-        dynamic_cast<String *>(res)->m_val = str->m_val.substr(arg1->m_val, arg2->m_val);
-        return res;
-    }
-    else if (name == "_iter_")
-    {
-        return iter(my, args);
+        throw runtime_error(GC::instance().get_interp()->report_error("name '" + name + "' is not defined in class " + get_name()));
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "'"));
+    if (it->second != args.size())
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in method '" + name + "' in class " + get_name()));
+    }
 }
 
-Object *StringIter::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
+Object *StringIter::call_method(Object *my, const std::string &name, [[maybe_unused]] const std::vector<Object *> &args)
 {
     if (name == "_has_next_")
     {
-        return has_next(my, args);
+        return has_next(my);
     }
     else if (name == "_next_")
     {
-        return next(my, args);
+        return next(my);
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "'"));
+    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "' in class " + get_name()));
 }
+
+/* List */
 
 Object *List::get(Object *index)
 {
@@ -202,13 +226,8 @@ void List::set(Object *index, Object *val)
     throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type"));
 }
 
-Object *List::iter(Object *my, const std::vector<Object *> &args)
+Object *List::iter(Object *my)
 {
-    if (args.size() != 0)
-    {
-        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in '_iter_'"));
-    }
-
     auto list = dynamic_cast<List *>(my);
 
     Object *res = GC::instance().new_object(ObjectType::ListIter);
@@ -217,32 +236,21 @@ Object *List::iter(Object *my, const std::vector<Object *> &args)
     return res;
 }
 
-Object *ListIter::has_next(Object *my, const std::vector<Object *> &args)
+void List::check_method(const std::string &name, const std::vector<Object *> &args)
 {
-    if (args.size() != 0)
+    static unordered_map<string, size_t> methods = {{"put", 1}, {"pop", 0}, {"pop_at", 1}, {"pop_all", 1}, {"len", 0}, {"clear", 0}, {"_iter_", 0}};
+
+    auto it = methods.find(name);
+
+    if (it == methods.end())
     {
-        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in '_has_next_'"));
+        throw runtime_error(GC::instance().get_interp()->report_error("name '" + name + "' is not defined in class " + get_name()));
     }
 
-    auto list_iter = dynamic_cast<ListIter *>(my);
-
-    Object *res = GC::instance().new_object(ObjectType::Bool);
-    dynamic_cast<Bool *>(res)->m_val = list_iter->m_beg != list_iter->m_end;
-    return res;
-}
-
-Object *ListIter::next(Object *my, const std::vector<Object *> &args)
-{
-    if (args.size() != 0)
+    if (it->second != args.size())
     {
-        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in '_next_'"));
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in method '" + name + "' in class " + get_name()));
     }
-
-    auto list_iter = dynamic_cast<ListIter *>(my);
-
-    Object *res = *list_iter->m_beg;
-    ++list_iter->m_beg;
-    return res;
 }
 
 Object *List::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
@@ -253,7 +261,7 @@ Object *List::call_method(Object *my, const std::string &name, const std::vector
     }
     if (name == "pop")
     {
-        return pop(my, args);
+        return pop(my);
     }
     if (name == "pop_at")
     {
@@ -265,30 +273,143 @@ Object *List::call_method(Object *my, const std::string &name, const std::vector
     }
     if (name == "len")
     {
-        return len(my, args);
+        return len(my);
     }
     if (name == "clear")
     {
-        return clear(my, args);
+        return clear(my);
     }
     if (name == "_iter_")
     {
-        return iter(my, args);
+        return iter(my);
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "'"));
+    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "' in class " + get_name()));
 }
 
-Object *ListIter::call_method(Object *my, const std::string &name, const std::vector<Object *> &args)
+Object *List::put(Object *my, const std::vector<Object *> &args)
+{
+    auto list = dynamic_cast<List *>(my);
+    list->m_vals.push_back(args[0]);
+
+    return nullptr;
+}
+
+Object *List::pop(Object *my)
+{
+    auto list = dynamic_cast<List *>(my);
+
+    if (list->m_vals.empty())
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("attempt to access an element in an empty container in 'pop'"));
+    }
+
+    list->m_vals.pop_back();
+
+    return nullptr;
+}
+
+Object *List::pop_at(Object *my, const std::vector<Object *> &args)
+{
+    auto arg = dynamic_cast<Int *>(args[0]);
+
+    if (!arg)
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid argument type in 'pop_at'"));
+    }
+
+    auto list = dynamic_cast<List *>(my);
+
+    if (list->m_vals.empty())
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("attempt to access an element in an empty container in 'pop_at'"));
+    }
+
+    if (arg->m_val < 0 || arg->m_val > int(list->m_vals.size() - 1))
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid index in 'pop_at'"));
+    }
+
+    list->m_vals.erase(list->m_vals.begin() + arg->m_val);
+
+    return nullptr;
+}
+
+Object *List::pop_all(Object *my, const std::vector<Object *> &args)
+{
+    auto list = dynamic_cast<List *>(my);
+    list->m_vals.erase(std::remove_if(list->m_vals.begin(), list->m_vals.end(),
+                                      [args](Object *x)
+                                      { return x->equals(args[0]); }),
+                       list->m_vals.end());
+
+    return nullptr;
+}
+
+Object *List::len(Object *my)
+{
+    auto list = dynamic_cast<List *>(my);
+
+    Object *o = GC::instance().new_object(ObjectType::Int);
+    dynamic_cast<Int *>(o)->m_val = list->m_vals.size();
+    return o;
+}
+
+Object *List::clear(Object *my)
+{
+    auto list = dynamic_cast<List *>(my);
+    list->m_vals.clear();
+
+    return nullptr;
+}
+
+/* ListIter */
+
+Object *ListIter::has_next(Object *my)
+{
+    auto list_iter = dynamic_cast<ListIter *>(my);
+
+    Object *res = GC::instance().new_object(ObjectType::Bool);
+    dynamic_cast<Bool *>(res)->m_val = list_iter->m_beg != list_iter->m_end;
+    return res;
+}
+
+Object *ListIter::next(Object *my)
+{
+    auto list_iter = dynamic_cast<ListIter *>(my);
+
+    Object *res = *list_iter->m_beg;
+    ++list_iter->m_beg;
+    return res;
+}
+
+Object *ListIter::call_method(Object *my, const std::string &name, [[maybe_unused]] const std::vector<Object *> &args)
 {
     if (name == "_has_next_")
     {
-        return has_next(my, args);
+        return has_next(my);
     }
     if (name == "_next_")
     {
-        return next(my, args);
+        return next(my);
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "'"));
+    throw runtime_error(GC::instance().get_interp()->report_error("undefined method '" + name + "' in class " + get_name()));
+}
+
+void ListIter::check_method(const std::string &name, const std::vector<Object *> &args)
+{
+    static unordered_map<string, size_t> methods = {{"_next_", 0}, {"_has_next_", 0}};
+
+    auto it = methods.find(name);
+
+    if (it == methods.end())
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("name '" + name + "' is not defined in class " + get_name()));
+    }
+
+    if (it->second != args.size())
+    {
+        throw runtime_error(GC::instance().get_interp()->report_error("invalid number of arguments in method '" + name + "' in class " + get_name()));
+    }
 }

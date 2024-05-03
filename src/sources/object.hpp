@@ -184,6 +184,8 @@ namespace halo
     struct ClassBase : Callable
     {
         virtual Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) = 0;
+        virtual void check_method(const std::string &name, const std::vector<Object *> &args) = 0;
+        virtual std::string get_name() const = 0;
     };
 
     struct StringIter : ClassBase
@@ -196,10 +198,16 @@ namespace halo
             m_type = this;
         }
 
-        Object *has_next(Object *my, const std::vector<Object *> &args);
-        Object *next(Object *my, const std::vector<Object *> &args);
+        Object *has_next(Object *my);
+        Object *next(Object *my);
 
-        Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+        Object *call_method(Object *my, const std::string &name, [[maybe_unused]] const std::vector<Object *> &args) override;
+        void check_method(const std::string &name, const std::vector<Object *> &args) override;
+
+        std::string get_name() const override
+        {
+            return "StringIter";
+        }
     };
 
     struct String : Indexable, ClassBase
@@ -233,9 +241,17 @@ namespace halo
             return m_val == p->m_val;
         }
 
-        Object *iter(Object *my, const std::vector<Object *> &args);
+        Object *iter(Object *my);
 
         Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+        void check_method(const std::string &name, const std::vector<Object *> &args) override;
+
+        std::string get_name() const override
+        {
+            return "String";
+        }
+
+        Object *substr(Object *my, const std::vector<Object *> &args);
     };
 
     struct ListIter : ClassBase
@@ -248,10 +264,16 @@ namespace halo
             m_type = this;
         }
 
-        Object *has_next(Object *my, const std::vector<Object *> &args);
-        Object *next(Object *my, const std::vector<Object *> &args);
+        Object *has_next(Object *my);
+        Object *next(Object *my);
 
-        Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+        Object *call_method(Object *my, const std::string &name, [[maybe_unused]] const std::vector<Object *> &args) override;
+        void check_method(const std::string &name, const std::vector<Object *> &args) override;
+
+        std::string get_name() const override
+        {
+            return "StringIter";
+        }
     };
 
     struct List : Indexable, ClassBase
@@ -295,9 +317,22 @@ namespace halo
             return true;
         }
 
-        Object *iter(Object *my, const std::vector<Object *> &args);
+        Object *iter(Object *my);
 
         Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override;
+        void check_method(const std::string &name, const std::vector<Object *> &args) override;
+
+        std::string get_name() const override
+        {
+            return "List";
+        }
+
+        Object *put(Object *my, const std::vector<Object *> &args);
+        Object *pop(Object *my);
+        Object *pop_at(Object *my, const std::vector<Object *> &args);
+        Object *pop_all(Object *my, const std::vector<Object *> &args);
+        Object *len(Object *my);
+        Object *clear(Object *my);
     };
 
     struct Null : Object

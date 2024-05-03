@@ -208,18 +208,7 @@ struct Class : ClassBase
     Object *call_method(Object *my, const std::string &name, const std::vector<Object *> &args) override
     {
         auto it = m_methods.find(name);
-
-        if (it == m_methods.end())
-        {
-            throw runtime_error(m_interp->report_error("name '" + name + "' is not defined"));
-        }
-
         Function *method = it->second;
-
-        if (method->arity() != int(args.size()))
-        {
-            throw runtime_error(m_interp->report_error("incorrect number of arguments for '" + method->to_str() + "'"));
-        }
 
         FunScope fc(m_interp->get_env(), Environment::ScopeType::Fun);
         m_interp->inc_fun_scope_counter();
@@ -243,6 +232,28 @@ struct Class : ClassBase
 
         m_interp->dec_fun_scope_counter();
         return nullptr;
+    }
+
+    void check_method(const std::string &name, const std::vector<Object *> &args) override
+    {
+        auto it = m_methods.find(name);
+
+        if (it == m_methods.end())
+        {
+            throw runtime_error(m_interp->report_error("name '" + name + "' is not defined"));
+        }
+
+        Function *method = it->second;
+
+        if (method->arity() != int(args.size()))
+        {
+            throw runtime_error(m_interp->report_error("incorrect number of arguments for '" + method->to_str() + "'"));
+        }
+    }
+
+    std::string get_name() const override
+    {
+        return m_cst->m_name.m_lexeme;
     }
 
     int arity() const override
@@ -302,6 +313,11 @@ struct PrintLine : Callable
     {
         return "println";
     }
+
+    string debug_info() const override
+    {
+        return "println";
+    }
 };
 
 struct Print : Callable
@@ -320,6 +336,11 @@ struct Print : Callable
     }
 
     string to_str() const override
+    {
+        return "print";
+    }
+
+    string debug_info() const override
     {
         return "print";
     }
@@ -348,6 +369,11 @@ struct ReadLine : Callable
     {
         return "readln";
     }
+
+    string debug_info() const override
+    {
+        return "readln";
+    }
 };
 
 struct ToInt : Callable
@@ -365,6 +391,11 @@ struct ToInt : Callable
     }
 
     string to_str() const override
+    {
+        return "to_int";
+    }
+
+    string debug_info() const override
     {
         return "to_int";
     }
@@ -388,6 +419,11 @@ struct ToFloat : Callable
     {
         return "to_float";
     }
+
+    string debug_info() const override
+    {
+        return "to_float";
+    }
 };
 
 struct ToStr : Callable
@@ -405,6 +441,11 @@ struct ToStr : Callable
     }
 
     string to_str() const override
+    {
+        return "to_str";
+    }
+
+    string debug_info() const override
     {
         return "to_str";
     }
@@ -426,6 +467,11 @@ struct GetRecursionDepth : Callable
     }
 
     string to_str() const override
+    {
+        return "get_recursion_depth";
+    }
+
+    string debug_info() const override
     {
         return "get_recursion_depth";
     }
@@ -457,6 +503,11 @@ struct SetRecursionDepth : Callable
     }
 
     string to_str() const override
+    {
+        return "set_recursion_depth";
+    }
+
+    string debug_info() const override
     {
         return "set_recursion_depth";
     }
@@ -750,10 +801,12 @@ Object *Interpreter::visit_call_expr(Call *e)
             args.push_back(evaluate(arg));
         }
 
+        o->m_type->check_method(p->m_name.m_lexeme, args);
+
         DebugManager debug_manager(this);
         m_debug_info.back().m_line = e->m_line;
         m_debug_info.back().m_name = "call expression";
-        m_debug_info.back().m_call_info = "method " + p->m_name.m_lexeme;
+        m_debug_info.back().m_call_info = "method " + o->m_type->get_name() + "." + p->m_name.m_lexeme;
 
         return o->call_method(p->m_name.m_lexeme, args);
     }

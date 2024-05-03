@@ -1,16 +1,13 @@
 class T:
-    fun _init_():
-    end
-
     fun f():
-        var res = lambda(): println(42 + "hello"); end;
-        res();
+        var lst = [1, 2, 3];
+        lst.put(4, 5);
     end
 end
 
 fun main():
     var t = T();
-    t.g();
+    t.f();
 end
 
 main();
