@@ -131,7 +131,7 @@ void run_script(const string &file)
 
     if (!f)
     {
-        cerr << "no file found" << endl;
+        cerr << "The file was not found" << endl;
     }
     else
     {

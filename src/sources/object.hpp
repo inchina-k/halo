@@ -43,29 +43,8 @@ namespace halo
             return res;
         }
 
-        void set_field(const std::string &name, Object *val)
-        {
-            auto it = m_fields.find(name);
-
-            if (it == m_fields.end())
-            {
-                throw std::runtime_error("Execution error\nfield '" + name + "' is not defined");
-            }
-
-            it->second = val;
-        }
-
-        Object *get_field(const std::string &name)
-        {
-            auto it = m_fields.find(name);
-
-            if (it == m_fields.end())
-            {
-                throw std::runtime_error("Execution error\nfield '" + name + "' is not defined");
-            }
-
-            return it->second;
-        }
+        void set_field(const std::string &name, Object *val);
+        Object *get_field(const std::string &name);
 
         Object *call_method(const std::string &name, const std::vector<Object *> &args);
 
@@ -165,20 +144,11 @@ namespace halo
         {
         }
 
-        virtual Object *call([[maybe_unused]] const std::vector<Object *> &args)
-        {
-            throw std::runtime_error("call not implemented");
-        }
+        virtual Object *call([[maybe_unused]] const std::vector<Object *> &args);
 
-        virtual int arity() const
-        {
-            throw std::runtime_error("arity not implemented");
-        }
+        virtual int arity() const;
 
-        virtual std::string debug_info() const
-        {
-            throw std::runtime_error("debug_info not implemented");
-        }
+        virtual std::string debug_info() const;
     };
 
     struct ClassBase : Callable
@@ -221,11 +191,7 @@ namespace halo
         }
 
         Object *get(Object *index) override;
-
-        void set(Object *, Object *) override
-        {
-            throw std::runtime_error("set operation is not available for type string");
-        }
+        void set(Object *, Object *) override;
 
         std::string to_str() const override;
 

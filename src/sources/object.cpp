@@ -49,9 +49,52 @@ string Null::to_str() const
     return "null";
 }
 
+/* Object */
+
+void Object::set_field(const std::string &name, Object *val)
+{
+    auto it = m_fields.find(name);
+
+    if (it == m_fields.end())
+    {
+        throw std::runtime_error(GC::instance().get_interp()->report_error("field '" + name + "' is not defined"));
+    }
+
+    it->second = val;
+}
+
+Object *Object::get_field(const std::string &name)
+{
+    auto it = m_fields.find(name);
+
+    if (it == m_fields.end())
+    {
+        throw std::runtime_error(GC::instance().get_interp()->report_error("field '" + name + "' is not defined"));
+    }
+
+    return it->second;
+}
+
 Object *Object::call_method(const std::string &name, const std::vector<Object *> &args)
 {
     return m_type->call_method(this, name, args);
+}
+
+/* Callable */
+
+Object *Callable::call([[maybe_unused]] const std::vector<Object *> &args)
+{
+    throw std::runtime_error(GC::instance().get_interp()->report_error("call is not implemented"));
+}
+
+int Callable::arity() const
+{
+    throw std::runtime_error(GC::instance().get_interp()->report_error("arity is not implemented"));
+}
+
+string Callable::debug_info() const
+{
+    throw std::runtime_error(GC::instance().get_interp()->report_error("debug info is not implemented"));
 }
 
 /* String */
@@ -62,7 +105,7 @@ Object *String::get(Object *index)
     {
         if (i->m_val < 0 || i->m_val > int(m_val.size() - 1))
         {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid index"));
+            throw runtime_error(GC::instance().get_interp()->report_error("invalid index in " + get_name()));
         }
 
         Object *o = GC::instance().new_object(ObjectType::String);
@@ -70,7 +113,12 @@ Object *String::get(Object *index)
         return o;
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type"));
+    throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type in " + get_name()));
+}
+
+void String::set(Object *, Object *)
+{
+    throw std::runtime_error(GC::instance().get_interp()->report_error("set operation is not available for type " + get_name()));
 }
 
 Object *String::iter(Object *my)
@@ -201,13 +249,13 @@ Object *List::get(Object *index)
     {
         if (i->m_val < 0 || i->m_val > int(m_vals.size() - 1))
         {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid index"));
+            throw runtime_error(GC::instance().get_interp()->report_error("invalid index in " + get_name()));
         }
 
         return m_vals[i->m_val];
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type"));
+    throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type in " + get_name()));
 }
 
 void List::set(Object *index, Object *val)
@@ -216,14 +264,14 @@ void List::set(Object *index, Object *val)
     {
         if (i->m_val < 0 || i->m_val > int(m_vals.size() - 1))
         {
-            throw runtime_error(GC::instance().get_interp()->report_error("invalid index"));
+            throw runtime_error(GC::instance().get_interp()->report_error("invalid index in " + get_name()));
         }
 
         m_vals[i->m_val] = val;
         return;
     }
 
-    throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type"));
+    throw runtime_error(GC::instance().get_interp()->report_error("invalid index value type in " + get_name()));
 }
 
 Object *List::iter(Object *my)
