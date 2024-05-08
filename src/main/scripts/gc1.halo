@@ -1,0 +1,21 @@
+var lst = [1, 2, 3, 4];
+
+print_gc_info();
+
+for i in (5, 200):
+    lst.put(i);
+end
+
+print_gc_info();
+
+var sum = 0;
+
+lst.pop_at(2);
+
+for el in lst:
+    let sum = sum + el;
+end
+
+print_gc_info();
+
+println(sum);

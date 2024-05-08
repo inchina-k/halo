@@ -14,6 +14,8 @@ namespace halo
     {
         ClassBase *m_type;
         std::map<std::string, Object *> m_fields;
+        bool m_marked = false;
+        bool m_eternal = false;
 
         Object(ClassBase *type = nullptr)
             : m_type(type)
@@ -52,6 +54,8 @@ namespace halo
         {
             return this == other;
         }
+
+        virtual void mark();
     };
 
     struct Int : Object
@@ -76,6 +80,8 @@ namespace halo
 
             return m_val == p->m_val;
         }
+
+        void mark() override;
     };
 
     struct Float : Object
@@ -100,6 +106,8 @@ namespace halo
 
             return m_val == p->m_val;
         }
+
+        void mark() override;
     };
 
     struct Bool : Object
@@ -124,6 +132,8 @@ namespace halo
 
             return m_val == p->m_val;
         }
+
+        void mark() override;
     };
 
     struct Indexable : virtual Object
@@ -178,6 +188,8 @@ namespace halo
         {
             return "StringIter";
         }
+
+        void mark() override;
     };
 
     struct String : Indexable, ClassBase
@@ -218,6 +230,8 @@ namespace halo
         }
 
         Object *substr(Object *my, const std::vector<Object *> &args);
+
+        void mark() override;
     };
 
     struct ListIter : ClassBase
@@ -240,6 +254,8 @@ namespace halo
         {
             return "StringIter";
         }
+
+        void mark() override;
     };
 
     struct List : Indexable, ClassBase
@@ -299,6 +315,8 @@ namespace halo
         Object *pop_all(Object *my, const std::vector<Object *> &args);
         Object *len(Object *my);
         Object *clear(Object *my);
+
+        void mark() override;
     };
 
     struct Null : Object
@@ -321,5 +339,7 @@ namespace halo
 
             return false;
         }
+
+        void mark() override;
     };
 }

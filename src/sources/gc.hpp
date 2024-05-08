@@ -26,6 +26,7 @@ namespace halo
     {
         std::list<Object *> m_objects;
         Interpreter *m_interp;
+        size_t m_threshold = 50;
 
         GC()
         {
@@ -59,12 +60,32 @@ namespace halo
         template <typename T>
         Object *new_object()
         {
+            if (count() >= m_threshold)
+            {
+                collect();
+
+                if (m_threshold < count())
+                {
+                    m_threshold = 2 * count();
+                }
+            }
+
             m_objects.push_back(new T());
             return m_objects.back();
         }
 
         Object *new_object(ObjectType t, Object *o = nullptr)
         {
+            if (count() >= m_threshold)
+            {
+                collect();
+
+                if (m_threshold < count())
+                {
+                    m_threshold = 2 * count();
+                }
+            }
+
             switch (t)
             {
             case ObjectType::Object:
@@ -100,6 +121,13 @@ namespace halo
             default:
                 return nullptr;
             }
+        }
+
+        void collect();
+
+        size_t count() const
+        {
+            return m_objects.size();
         }
     };
 }

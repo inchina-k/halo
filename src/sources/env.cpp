@@ -86,3 +86,17 @@ void Environment::swap_env(Environment &other)
     m_data.swap(other.m_data);
     m_scopes.swap(other.m_scopes);
 }
+
+void Environment::mark()
+{
+    for (auto &env : m_data)
+    {
+        for (auto &[str, obj] : env)
+        {
+            if (obj && !obj->m_marked)
+            {
+                obj->mark();
+            }
+        }
+    }
+}

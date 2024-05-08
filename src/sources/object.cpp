@@ -12,9 +12,19 @@ string Int::to_str() const
     return to_string(m_val);
 }
 
+void Int::mark()
+{
+    m_marked = true;
+}
+
 string Float::to_str() const
 {
     return to_string(m_val);
+}
+
+void Float::mark()
+{
+    m_marked = true;
 }
 
 string Bool::to_str() const
@@ -22,9 +32,19 @@ string Bool::to_str() const
     return m_val ? "true" : "false";
 }
 
+void Bool::mark()
+{
+    m_marked = true;
+}
+
 string String::to_str() const
 {
     return m_val;
+}
+
+void String::mark()
+{
+    m_marked = true;
 }
 
 string List::to_str() const
@@ -44,9 +64,37 @@ string List::to_str() const
     return res;
 }
 
+void List::mark()
+{
+    m_marked = true;
+
+    for (auto val : m_vals)
+    {
+        if (val && !val->m_marked)
+        {
+            val->mark();
+        }
+    }
+}
+
 string Null::to_str() const
 {
     return "null";
+}
+
+void Null::mark()
+{
+    m_marked = true;
+}
+
+void StringIter::mark()
+{
+    m_marked = true;
+}
+
+void ListIter::mark()
+{
+    m_marked = true;
 }
 
 /* Object */
@@ -78,6 +126,19 @@ Object *Object::get_field(const std::string &name)
 Object *Object::call_method(const std::string &name, const std::vector<Object *> &args)
 {
     return m_type->call_method(this, name, args);
+}
+
+void Object::mark()
+{
+    m_marked = true;
+
+    for (auto &[str, obj] : m_fields)
+    {
+        if (obj && !obj->m_marked)
+        {
+            obj->mark();
+        }
+    }
 }
 
 /* Callable */

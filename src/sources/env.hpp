@@ -19,6 +19,7 @@ namespace halo
             General,
             If,
             While,
+            ForHeader,
             For,
             Fun,
             Init,
@@ -43,5 +44,6 @@ namespace halo
         void add_scope(ScopeType st);
         void remove_scope();
         void swap_env(Environment &other);
+        void mark();
     };
 }

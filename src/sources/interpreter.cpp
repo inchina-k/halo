@@ -513,6 +513,56 @@ struct SetRecursionDepth : Callable
     }
 };
 
+struct PrintGCInfo : Callable
+{
+    Interpreter *m_interp = nullptr;
+
+    Object *call([[maybe_unused]] const std::vector<Object *> &args) override
+    {
+        m_interp->get_out() << "Objects in GC: " << GC::instance().count() << endl;
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return 0;
+    }
+
+    string to_str() const override
+    {
+        return "print_gc_info";
+    }
+
+    string debug_info() const override
+    {
+        return "print_gc_info";
+    }
+};
+
+struct GCCollect : Callable
+{
+    Object *call([[maybe_unused]] const std::vector<Object *> &args) override
+    {
+        GC::instance().collect();
+        return nullptr;
+    }
+
+    int arity() const override
+    {
+        return 0;
+    }
+
+    string to_str() const override
+    {
+        return "gc_collect";
+    }
+
+    string debug_info() const override
+    {
+        return "gc_collect";
+    }
+};
+
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_env(this), m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
 {
@@ -540,9 +590,15 @@ Interpreter::Interpreter(istream &in, ostream &out)
     srd->m_interp = this;
     m_env.define(Token(TokenType::Var, "set_recursion_depth", 0, 0), srd);
 
+    PrintGCInfo *pgci = dynamic_cast<PrintGCInfo *>(GC::instance().new_object<PrintGCInfo>());
+    pgci->m_interp = this;
+    m_env.define(Token(TokenType::Var, "print_gc_info", 0, 0), pgci);
+
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
     m_env.define(Token(TokenType::Var, "to_float", 0, 0), GC::instance().new_object<ToFloat>());
     m_env.define(Token(TokenType::Var, "to_str", 0, 0), GC::instance().new_object<ToStr>());
+
+    m_env.define(Token(TokenType::Var, "gc_collect", 0, 0), GC::instance().new_object<GCCollect>());
 }
 
 void Interpreter::interpret(Expr *e)
@@ -888,12 +944,14 @@ Object *Interpreter::visit_literal(Literal *e)
     case TokenType::IntLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Int);
+        o->m_eternal = true;
         static_cast<Int *>(o)->m_val = stoi(e->m_token.m_lexeme);
         return o;
     }
     case TokenType::FloatLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Float);
+        o->m_eternal = true;
         static_cast<Float *>(o)->m_val = stod(e->m_token.m_lexeme);
         return o;
     }
@@ -901,12 +959,14 @@ Object *Interpreter::visit_literal(Literal *e)
     case TokenType::False:
     {
         Object *o = GC::instance().new_object(ObjectType::Bool);
+        o->m_eternal = true;
         static_cast<Bool *>(o)->m_val = e->m_token.m_type == TokenType::True;
         return o;
     }
     case TokenType::StrLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::String);
+        o->m_eternal = true;
         dynamic_cast<String *>(o)->m_val = e->m_token.m_lexeme;
         return o;
     }
@@ -976,13 +1036,22 @@ Object *Interpreter::visit_list(ListExpr *e)
     m_debug_info.back().m_line = e->m_line;
     m_debug_info.back().m_name = "list";
 
-    Object *o = GC::instance().new_object(ObjectType::List);
     vector<Object *> vals;
     for (auto el : e->m_params)
     {
-        vals.push_back(evaluate(el));
+        Object *v = evaluate(el);
+        v->m_eternal = true;
+        vals.push_back(v);
     }
+
+    Object *o = GC::instance().new_object(ObjectType::List);
     dynamic_cast<List *>(o)->m_vals = vals;
+
+    for (auto el : dynamic_cast<List *>(o)->m_vals)
+    {
+        el->m_eternal = false;
+    }
+
     return o;
 }
 
@@ -1009,17 +1078,20 @@ void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
     if (auto p2 = dynamic_cast<Dot *>(e->m_lval))
     {
         Object *o = evaluate(p2->m_expr);
+        o->m_eternal = true;
         o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
+        o->m_eternal = false;
         return;
     }
     if (auto p3 = dynamic_cast<Subscript *>(e->m_lval))
     {
         Object *o = evaluate(p3->m_expr);
+        o->m_eternal = true;
         if (auto a = dynamic_cast<Indexable *>(o))
         {
             a->set(evaluate(p3->m_index), evaluate(e->m_expr));
         }
-        // o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
+        o->m_eternal = false;
         return;
     }
 
@@ -1095,33 +1167,35 @@ void Interpreter::visit_for_stmt(ForStmt *e)
 
     try
     {
+        Scope hs(m_env, Environment::ScopeType::ForHeader);
+
         if (e->m_begin)
         {
-            Object *begin = evaluate(e->m_begin);
-            Object *end = evaluate(e->m_end);
-            Object *step = nullptr;
+            Object *begin_obj = evaluate(e->m_begin);
+            Object *end_obj = evaluate(e->m_end);
+            Object *step_obj = nullptr;
 
             if (e->m_step)
             {
-                step = evaluate(e->m_step);
+                step_obj = evaluate(e->m_step);
             }
             else
             {
-                step = GC::instance().new_object(ObjectType::Int);
-                dynamic_cast<Int *>(step)->m_val = 1;
+                step_obj = GC::instance().new_object(ObjectType::Int);
+                dynamic_cast<Int *>(step_obj)->m_val = 1;
             }
 
-            Int *ibegin = dynamic_cast<Int *>(begin);
+            Int *ibegin = dynamic_cast<Int *>(begin_obj);
             if (!ibegin)
             {
                 throw runtime_error(report_error("first index in range must be an integer"));
             }
-            Int *iend = dynamic_cast<Int *>(end);
+            Int *iend = dynamic_cast<Int *>(end_obj);
             if (!iend)
             {
                 throw runtime_error(report_error("last index in range must be an integer"));
             }
-            Int *istep = dynamic_cast<Int *>(step);
+            Int *istep = dynamic_cast<Int *>(step_obj);
             if (!istep)
             {
                 throw runtime_error(report_error("step in range must be an integer"));
@@ -1131,6 +1205,10 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             {
                 throw runtime_error(report_error("step in range must not be 0"));
             }
+
+            hs.m_env.define(Token(TokenType::Var, "__for_begin__", 0, 0), ibegin);
+            hs.m_env.define(Token(TokenType::Var, "__for_end__", 0, 0), iend);
+            hs.m_env.define(Token(TokenType::Var, "__for_step__", 0, 0), istep);
 
             for (long long i = ibegin->m_val; istep->m_val > 0 ? i < iend->m_val : i > iend->m_val; i += istep->m_val)
             {
@@ -1162,9 +1240,13 @@ void Interpreter::visit_for_stmt(ForStmt *e)
                 throw runtime_error(report_error("uniterable object"));
             }
 
+            hs.m_env.define(Token(TokenType::Var, "__for_iterable__", 0, 0), iterable);
+            hs.m_env.define(Token(TokenType::Var, "__for_it__", 0, 0), it);
+
             try
             {
                 Bool *has_next = dynamic_cast<Bool *>(it->call_method("_has_next_", vector<Object *>()));
+
                 if (!has_next)
                 {
                     throw runtime_error("");
@@ -1173,11 +1255,10 @@ void Interpreter::visit_for_stmt(ForStmt *e)
                 while (has_next->m_val)
                 {
                     Object *el = it->call_method("_next_", vector<Object *>());
+
                     try
                     {
                         Scope s(m_env, Environment::ScopeType::For);
-                        // Object *curr = GC::instance().new_object(ObjectType::Int);
-                        // dynamic_cast<Int *>(curr)->m_val = i;
                         s.m_env.define(e->m_identifier, el);
                         execute(e->m_do_branch);
                     }
@@ -1185,6 +1266,7 @@ void Interpreter::visit_for_stmt(ForStmt *e)
                     {
                         // empty
                     }
+
                     has_next = dynamic_cast<Bool *>(it->call_method("_has_next_", vector<Object *>()));
                 }
             }
