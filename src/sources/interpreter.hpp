@@ -48,6 +48,7 @@ namespace halo
         std::ostream &m_out;
         int m_fun_scope_counter;
         int m_max_fun_depth;
+        std::string m_script;
 
         template <typename OpType, ObjectType ObType, typename ResType = OpType, typename Op>
         Object *bin_op(Object *left, Object *right, Op op)
@@ -154,6 +155,11 @@ namespace halo
         void dec_fun_scope_counter()
         {
             --m_fun_scope_counter;
+        }
+
+        void set_script(std::string script)
+        {
+            m_script = script;
         }
 
         void interpret(Expr *e);

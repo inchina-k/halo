@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        cout << "usage:\nhalo - for repl mode\nhalo script.halo - for file mode" << endl;
+        cout << "Usage:\n    halo - REPL mode\n    halo script.halo - file mode" << endl;
     }
 }
 
@@ -135,6 +135,7 @@ void run_script(const string &file)
     }
     else
     {
+        interpreter.set_script(file);
         script(copy_file(f));
     }
 }

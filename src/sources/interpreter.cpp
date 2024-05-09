@@ -564,7 +564,7 @@ struct GCCollect : Callable
 };
 
 Interpreter::Interpreter(istream &in, ostream &out)
-    : m_env(this), m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024)
+    : m_env(this), m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024), m_script("cli")
 {
     GC::instance().set_interp(this);
 
@@ -1375,7 +1375,7 @@ std::string Interpreter::report_error(std::string desc)
         }
     }
 
-    res << "    script: main";
+    res << "    script: " << m_script;
 
     return res.str();
 }

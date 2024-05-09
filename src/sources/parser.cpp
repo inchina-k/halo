@@ -152,7 +152,7 @@ Stmt *Parser::statement(size_t line)
 
 Stmt *Parser::var_statement(size_t line)
 {
-    Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <var statement> expected variable name");
+    Token name = consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <var statement> expected variable name");
 
     Expr *e = nullptr;
 
@@ -161,7 +161,7 @@ Stmt *Parser::var_statement(size_t line)
         e = expr();
     }
 
-    consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <var statement> expected ';' symbol");
+    consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <var statement> expected ';' symbol");
 
     return new VarStmt(name, e, line);
 }
@@ -176,21 +176,21 @@ Stmt *Parser::assignment_statement(size_t line)
 
     if (p || p2 || p3)
     {
-        consume(TokenType::Equal, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected '=' symbol");
+        consume(TokenType::Equal, "Parse error\n    line " + to_string(peek().m_line) + ": <assignment statement> expected '=' symbol");
         Expr *e = expr();
-        consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> expected ';' symbol");
+        consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <assignment statement> expected ';' symbol");
 
         return new AssignmentStmt(lval, e, line);
     }
 
-    throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <assignment statement> can be used only with variables or object fields");
+    throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <assignment statement> can be used only with variables or object fields");
 }
 
 Stmt *Parser::expression_statement(size_t line)
 {
     Expr *e = expr();
 
-    consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <expression statement> expected ';' symbol");
+    consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <expression statement> expected ';' symbol");
 
     return new ExpressionStmt(e, line);
 }
@@ -207,7 +207,7 @@ Stmt *Parser::if_statement(size_t line)
     {
         conds.push_back(expr());
 
-        consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <if statement> expected ':' symbol");
+        consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <if statement> expected ':' symbol");
 
         then_branches.emplace_back();
 
@@ -223,12 +223,12 @@ Stmt *Parser::if_statement(size_t line)
 
     if (peek().m_type == TokenType::Eof)
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <if statement> unexpected end of statement");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <if statement> unexpected end of statement");
     }
 
     if (match(TokenType::Else))
     {
-        consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <else statement> expected ':' symbol");
+        consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <else statement> expected ':' symbol");
 
         while (peek().m_type != TokenType::Eof && peek().m_type != TokenType::End)
         {
@@ -237,11 +237,11 @@ Stmt *Parser::if_statement(size_t line)
 
         if (peek().m_type == TokenType::Eof)
         {
-            throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <else statement> unexpected end of statement");
+            throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <else statement> unexpected end of statement");
         }
     }
 
-    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <if statement> missing end of statement");
+    consume(TokenType::End, "Parse error\n    line " + to_string(peek().m_line) + ": <if statement> missing end of statement");
 
     m_scopes.pop_back();
 
@@ -255,7 +255,7 @@ Stmt *Parser::while_statement(size_t line)
     Expr *cond = expr();
     vector<unique_ptr<Stmt>> do_branch;
 
-    consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <while statement> expected ':' symbol");
+    consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <while statement> expected ':' symbol");
 
     while (peek().m_type != TokenType::Eof &&
            peek().m_type != TokenType::End)
@@ -265,10 +265,10 @@ Stmt *Parser::while_statement(size_t line)
 
     if (peek().m_type == TokenType::Eof)
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <while statement> unexpected end of statement");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <while statement> unexpected end of statement");
     }
 
-    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <while statement> missing end of statement");
+    consume(TokenType::End, "Parse error\n    line " + to_string(peek().m_line) + ": <while statement> missing end of statement");
 
     m_scopes.pop_back();
 
@@ -279,9 +279,9 @@ Stmt *Parser::for_statement(size_t line)
 {
     m_scopes.push_back(Scopes::For);
 
-    Token identifier = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected variable identifier");
+    Token identifier = consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <for statement> expected variable identifier");
 
-    consume(TokenType::In, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected 'in' keyword");
+    consume(TokenType::In, "Parse error\n    line " + to_string(peek().m_line) + ": <for statement> expected 'in' keyword");
 
     Expr *begin = nullptr;
     Expr *end = nullptr;
@@ -303,7 +303,7 @@ Stmt *Parser::for_statement(size_t line)
             } while (match(TokenType::Comma));
         }
 
-        consume(TokenType::ClosePar, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected ')' symbol");
+        consume(TokenType::ClosePar, "Parse error\n    line " + to_string(peek().m_line) + ": <for statement> expected ')' symbol");
 
         if (range_params.size() == 2)
         {
@@ -318,7 +318,7 @@ Stmt *Parser::for_statement(size_t line)
         }
         else
         {
-            throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <for statement> invalid number of range arguments");
+            throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <for statement> invalid number of range arguments");
         }
     }
     else
@@ -326,7 +326,7 @@ Stmt *Parser::for_statement(size_t line)
         iterable = expr();
     }
 
-    consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> expected ':' symbol");
+    consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <for statement> expected ':' symbol");
 
     while (peek().m_type != TokenType::Eof &&
            peek().m_type != TokenType::End)
@@ -336,10 +336,10 @@ Stmt *Parser::for_statement(size_t line)
 
     if (peek().m_type == TokenType::Eof)
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <for statement> unexpected end of statement");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <for statement> unexpected end of statement");
     }
 
-    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <for statement> missing end of statement");
+    consume(TokenType::End, "Parse error\n    line " + to_string(peek().m_line) + ": <for statement> missing end of statement");
 
     m_scopes.pop_back();
 
@@ -350,10 +350,10 @@ Stmt *Parser::break_statement(size_t line)
 {
     if (!is_in_loop())
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <break statement> out of loop");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <break statement> out of loop");
     }
 
-    consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <break statement> expected ';' symbol");
+    consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <break statement> expected ';' symbol");
 
     return new BreakStmt(line);
 }
@@ -362,10 +362,10 @@ Stmt *Parser::continue_statement(size_t line)
 {
     if (!is_in_loop())
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <continue statement> out of loop");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <continue statement> out of loop");
     }
 
-    consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <continue statement> expected ';' symbol");
+    consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <continue statement> expected ';' symbol");
 
     return new ContinueStmt(line);
 }
@@ -374,10 +374,10 @@ Stmt *Parser::fun_statement(size_t line)
 {
     if (!is_fun_allowed())
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <fun statement> must be global or a class member");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> must be global or a class member");
     }
 
-    Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <fun statement> expected function name");
+    Token name = consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> expected function name");
 
     if (m_scopes.size() > 0 && m_scopes.back() == Scopes::Class && name.m_lexeme == "_init_")
     {
@@ -388,7 +388,7 @@ Stmt *Parser::fun_statement(size_t line)
         m_scopes.push_back(Scopes::Fun);
     }
 
-    consume(TokenType::OpenPar, "Parse error\nline " + to_string(peek().m_line) + ": <fun statement> expected '(' symbol in function '" + name.m_lexeme + "'");
+    consume(TokenType::OpenPar, "Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> expected '(' symbol in function '" + name.m_lexeme + "'");
     vector<Token> params;
     if (peek().m_type == TokenType::Identifier)
     {
@@ -398,17 +398,17 @@ Stmt *Parser::fun_statement(size_t line)
     while (peek().m_type == TokenType::Comma)
     {
         advance();
-        params.push_back(consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <fun statement> expected parameter name after ',' symbol in function '" + name.m_lexeme + "'"));
+        params.push_back(consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> expected parameter name after ',' symbol in function '" + name.m_lexeme + "'"));
 
         if (count_if(begin(params), end(params), [&params](const auto &p)
                      { return p.m_lexeme == params.back().m_lexeme; }) > 1)
         {
-            throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <fun statement> duplicate parameter '" + params.back().m_lexeme + "' in function '" + name.m_lexeme + "'");
+            throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> duplicate parameter '" + params.back().m_lexeme + "' in function '" + name.m_lexeme + "'");
         }
     }
-    consume(TokenType::ClosePar, "Parse error\nline " + to_string(peek().m_line) + ": <fun statement> expected ')' symbol in function '" + name.m_lexeme + "'");
+    consume(TokenType::ClosePar, "Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> expected ')' symbol in function '" + name.m_lexeme + "'");
 
-    consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <fun statement> expected ':' symbol in function '" + name.m_lexeme + "'");
+    consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> expected ':' symbol in function '" + name.m_lexeme + "'");
 
     vector<unique_ptr<Stmt>> body;
 
@@ -420,10 +420,10 @@ Stmt *Parser::fun_statement(size_t line)
 
     if (peek().m_type == TokenType::Eof)
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <fun statement> unexpected end of function '" + name.m_lexeme + "'");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> unexpected end of function '" + name.m_lexeme + "'");
     }
 
-    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <fun statement> missing end of function '" + name.m_lexeme + "'");
+    consume(TokenType::End, "Parse error\n    line " + to_string(peek().m_line) + ": <fun statement> missing end of function '" + name.m_lexeme + "'");
 
     m_scopes.pop_back();
 
@@ -434,7 +434,7 @@ Stmt *Parser::return_statement(size_t line)
 {
     if (!is_in_callable())
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <return statement> out of function");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <return statement> out of function");
     }
 
     Expr *exp = nullptr;
@@ -443,12 +443,12 @@ Stmt *Parser::return_statement(size_t line)
     {
         if (is_constructor())
         {
-            throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <return statement> must not have return value in constructor");
+            throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <return statement> must not have return value in constructor");
         }
         exp = expr();
     }
 
-    consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <return statement> expected ';' symbol");
+    consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <return statement> expected ';' symbol");
 
     return new ReturnStmt(exp, line);
 }
@@ -457,13 +457,13 @@ Stmt *Parser::class_statement(size_t line)
 {
     if (!is_class_allowed())
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <class statement> can only be global");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <class statement> can only be global");
     }
 
     m_scopes.push_back(Scopes::Class);
 
-    Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected class name");
-    consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected ':' symbol in class '" + name.m_lexeme + "'");
+    Token name = consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <class statement> expected class name");
+    consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <class statement> expected ':' symbol in class '" + name.m_lexeme + "'");
 
     set<string> fields;
     vector<unique_ptr<FunStmt>> methods;
@@ -474,8 +474,8 @@ Stmt *Parser::class_statement(size_t line)
 
         if (match(TokenType::Var))
         {
-            Token field = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected variable name");
-            consume(TokenType::Semicolon, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> expected ';' symbol");
+            Token field = consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <class statement> expected variable name");
+            consume(TokenType::Semicolon, "Parse error\n    line " + to_string(peek().m_line) + ": <class statement> expected ';' symbol");
             fields.insert(field.m_lexeme);
         }
         else if (match(TokenType::Fun))
@@ -488,7 +488,7 @@ Stmt *Parser::class_statement(size_t line)
         }
     }
 
-    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <class statement> missing end of class '" + name.m_lexeme + "'");
+    consume(TokenType::End, "Parse error\n    line " + to_string(peek().m_line) + ": <class statement> missing end of class '" + name.m_lexeme + "'");
 
     m_scopes.pop_back();
 
@@ -634,18 +634,18 @@ Expr *Parser::call()
                 } while (match(TokenType::Comma));
             }
 
-            consume(TokenType::ClosePar, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected ')' symbol");
+            consume(TokenType::ClosePar, "Parse error\n    line " + to_string(peek().m_line) + ": <call expression> expected ')' symbol");
             callee = alloc_call_expr(callee, args, line);
         }
         else if (match(TokenType::Dot))
         {
-            Token name = consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected member name");
+            Token name = consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <call expression> expected member name");
             callee = alloc_dot_expr(callee, name);
         }
         else if (match(TokenType::OpenBracket))
         {
             Expr *e = expr();
-            consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <call expression> expected ']' symbol");
+            consume(TokenType::CloseBracket, "Parse error\n    line " + to_string(peek().m_line) + ": <call expression> expected ']' symbol");
             callee = alloc_subscript_expr(callee, e, line);
         }
         else
@@ -686,14 +686,14 @@ Expr *Parser::primary()
             return e;
         }
 
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <primary expression> expected ')' symbol");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <primary expression> expected ')' symbol");
     }
     else if (match(TokenType::OpenBracket))
     {
         return list();
     }
 
-    throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <primary expression> unknown expression");
+    throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <primary expression> unknown expression");
 }
 
 Expr *Parser::lambda()
@@ -702,7 +702,7 @@ Expr *Parser::lambda()
 
     if (!is_lambda_allowed())
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> cannot be used in another lambda or as a class member");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> cannot be used in another lambda or as a class member");
     }
 
     m_scopes.push_back(Scopes::Lambda);
@@ -718,18 +718,18 @@ Expr *Parser::lambda()
         while (peek().m_type == TokenType::Comma)
         {
             advance();
-            capture.push_back(consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> expected capture element name after ',' symbol"));
+            capture.push_back(consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> expected capture element name after ',' symbol"));
 
             if (count_if(begin(capture), end(capture), [&capture](const auto &e)
                          { return e.m_lexeme == capture.back().m_lexeme; }) > 1)
             {
-                throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> duplicate capture element '" + capture.back().m_lexeme + "'");
+                throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> duplicate capture element '" + capture.back().m_lexeme + "'");
             }
         }
-        consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> expected ']' symbol");
+        consume(TokenType::CloseBracket, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> expected ']' symbol");
     }
 
-    consume(TokenType::OpenPar, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> expected '(' symbol");
+    consume(TokenType::OpenPar, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> expected '(' symbol");
     vector<Token> params;
     if (peek().m_type == TokenType::Identifier)
     {
@@ -739,17 +739,17 @@ Expr *Parser::lambda()
     while (peek().m_type == TokenType::Comma)
     {
         advance();
-        params.push_back(consume(TokenType::Identifier, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> expected parameter name after ',' symbol"));
+        params.push_back(consume(TokenType::Identifier, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> expected parameter name after ',' symbol"));
 
         if (count_if(begin(params), end(params), [&params](const auto &p)
                      { return p.m_lexeme == params.back().m_lexeme; }) > 1)
         {
-            throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> duplicate parameter '" + params.back().m_lexeme + "'");
+            throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> duplicate parameter '" + params.back().m_lexeme + "'");
         }
     }
-    consume(TokenType::ClosePar, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> expected ')' symbol");
+    consume(TokenType::ClosePar, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> expected ')' symbol");
 
-    consume(TokenType::Colon, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> expected ':' symbol");
+    consume(TokenType::Colon, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> expected ':' symbol");
 
     vector<unique_ptr<Stmt>> body;
 
@@ -761,10 +761,10 @@ Expr *Parser::lambda()
 
     if (peek().m_type == TokenType::Eof)
     {
-        throw runtime_error("Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> unexpected end of lambda");
+        throw runtime_error("Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> unexpected end of lambda");
     }
 
-    consume(TokenType::End, "Parse error\nline " + to_string(peek().m_line) + ": <lambda expression> missing end of lambda");
+    consume(TokenType::End, "Parse error\n    line " + to_string(peek().m_line) + ": <lambda expression> missing end of lambda");
 
     m_scopes.pop_back();
 
@@ -787,7 +787,7 @@ Expr *Parser::list()
         } while (match(TokenType::Comma));
     }
 
-    consume(TokenType::CloseBracket, "Parse error\nline " + to_string(peek().m_line) + ": <list expression> expected ']' symbol");
+    consume(TokenType::CloseBracket, "Parse error\n    line " + to_string(peek().m_line) + ": <list expression> expected ']' symbol");
 
     return alloc_list(args, line);
 }
