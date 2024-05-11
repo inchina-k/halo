@@ -26,7 +26,7 @@ namespace halo
     {
         std::list<Object *> m_objects;
         Interpreter *m_interp;
-        size_t m_threshold = 50;
+        size_t m_threshold = 100;
 
         GC()
         {
@@ -128,6 +128,11 @@ namespace halo
         size_t count() const
         {
             return m_objects.size();
+        }
+
+        size_t get_treshold()
+        {
+            return m_threshold;
         }
     };
 }

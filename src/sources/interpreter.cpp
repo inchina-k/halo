@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 using namespace halo;
@@ -37,6 +38,21 @@ struct FunScope
     ~FunScope()
     {
         m_env.remove_scope();
+    }
+};
+
+struct StackTmpManager
+{
+    size_t m_curr_size;
+
+    StackTmpManager(size_t curr_size)
+        : m_curr_size(curr_size)
+    {
+    }
+
+    ~StackTmpManager()
+    {
+        GC::instance().get_interp()->clear_tmp_stack_from(m_curr_size);
     }
 };
 
@@ -153,6 +169,19 @@ struct LambdaFunction : Callable
     string to_str() const override
     {
         return "<lambda>(" + to_string(arity()) + ")";
+    }
+
+    void mark() override
+    {
+        m_marked = true;
+
+        for (auto &[str, obj] : m_capture)
+        {
+            if (obj && !obj->m_marked)
+            {
+                obj->mark();
+            }
+        }
     }
 };
 
@@ -292,6 +321,19 @@ struct Class : ClassBase
 
         return res;
     }
+
+    void mark() override
+    {
+        m_marked = true;
+
+        for (auto &[str, obj] : m_methods)
+        {
+            if (obj && !obj->m_marked)
+            {
+                obj->mark();
+            }
+        }
+    }
 };
 
 struct PrintLine : Callable
@@ -355,6 +397,7 @@ struct ReadLine : Callable
         string str;
         getline(interp->get_in(), str);
         Object *res = GC::instance().new_object(ObjectType::String);
+        GC::instance().get_interp()->get_tmp_vals().push_back(res);
         dynamic_cast<String *>(res)->m_val = str;
 
         return res;
@@ -381,6 +424,7 @@ struct ToInt : Callable
     Object *call(const std::vector<Object *> &args) override
     {
         Object *res = GC::instance().new_object(ObjectType::Int);
+        GC::instance().get_interp()->get_tmp_vals().push_back(res);
         dynamic_cast<Int *>(res)->m_val = stoi(args.front()->to_str());
         return res;
     }
@@ -406,6 +450,7 @@ struct ToFloat : Callable
     Object *call(const std::vector<Object *> &args) override
     {
         Object *res = GC::instance().new_object(ObjectType::Float);
+        GC::instance().get_interp()->get_tmp_vals().push_back(res);
         dynamic_cast<Float *>(res)->m_val = stod(args.front()->to_str());
         return res;
     }
@@ -431,6 +476,7 @@ struct ToStr : Callable
     Object *call(const std::vector<Object *> &args) override
     {
         Object *res = GC::instance().new_object(ObjectType::String);
+        GC::instance().get_interp()->get_tmp_vals().push_back(res);
         dynamic_cast<String *>(res)->m_val = args.front()->to_str();
         return res;
     }
@@ -520,6 +566,7 @@ struct PrintGCInfo : Callable
     Object *call([[maybe_unused]] const std::vector<Object *> &args) override
     {
         m_interp->get_out() << "Objects in GC: " << GC::instance().count() << endl;
+        m_interp->get_out() << "threshold: " << GC::instance().get_treshold() << endl;
         return nullptr;
     }
 
@@ -608,9 +655,17 @@ void Interpreter::interpret(Expr *e)
     cout << (res != nullptr ? res->to_str() : "null") << endl;
 }
 
+Object *Interpreter::evaluate_whole_expr(Expr *e)
+{
+    StackTmpManager stm(m_tmp_vals.size());
+    return evaluate(e);
+}
+
 Object *Interpreter::evaluate(Expr *e)
 {
-    return e->visit(this);
+    Object *res = e->visit(this);
+    m_tmp_vals.push_back(res);
+    return res;
 }
 
 void Interpreter::execute(const std::vector<unique_ptr<Stmt>> &stmts)
@@ -773,12 +828,14 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
     case TokenType::EqualEqual:
     {
         Object *r = GC::instance().new_object(ObjectType::Bool);
+        GC::instance().get_interp()->get_tmp_vals().push_back(r);
         static_cast<Bool *>(r)->m_val = equals(o1, o2);
         return r;
     }
     case TokenType::BangEqual:
     {
         Object *r = GC::instance().new_object(ObjectType::Bool);
+        GC::instance().get_interp()->get_tmp_vals().push_back(r);
         static_cast<Bool *>(r)->m_val = !equals(o1, o2);
         return r;
     }
@@ -821,6 +878,7 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
     case TokenType::Not:
     {
         Object *r = GC::instance().new_object(ObjectType::Bool);
+        GC::instance().get_interp()->get_tmp_vals().push_back(r);
         static_cast<Bool *>(r)->m_val = !is_true(o);
         return r;
     }
@@ -828,12 +886,14 @@ Object *Interpreter::visit_unary_expr(UnaryExpr *e)
         if (Int *i = dynamic_cast<Int *>(o))
         {
             Object *r = GC::instance().new_object(ObjectType::Int);
+            GC::instance().get_interp()->get_tmp_vals().push_back(r);
             static_cast<Int *>(r)->m_val = -i->m_val;
             return r;
         }
         if (Float *f = dynamic_cast<Float *>(o))
         {
             Object *r = GC::instance().new_object(ObjectType::Float);
+            GC::instance().get_interp()->get_tmp_vals().push_back(r);
             static_cast<Float *>(r)->m_val = -f->m_val;
             return r;
         }
@@ -849,12 +909,15 @@ Object *Interpreter::visit_call_expr(Call *e)
     if (auto p = dynamic_cast<Dot *>(e->m_expr))
     {
         Object *o = evaluate(p->m_expr);
+        m_tmp_vals.push_back(o);
 
         vector<Object *> args;
 
         for (auto arg : e->m_args)
         {
-            args.push_back(evaluate(arg));
+            Object *tmp = evaluate(arg);
+            m_tmp_vals.push_back(tmp);
+            args.push_back(tmp);
         }
 
         o->m_type->check_method(p->m_name.m_lexeme, args);
@@ -864,10 +927,13 @@ Object *Interpreter::visit_call_expr(Call *e)
         m_debug_info.back().m_name = "call expression";
         m_debug_info.back().m_call_info = "method " + o->m_type->get_name() + "." + p->m_name.m_lexeme;
 
-        return o->call_method(p->m_name.m_lexeme, args);
+        Object *res = o->call_method(p->m_name.m_lexeme, args);
+        m_tmp_vals.push_back(res);
+        return res;
     }
 
     Object *o = evaluate(e->m_expr);
+    m_tmp_vals.push_back(o);
 
     Callable *c = dynamic_cast<Callable *>(o);
 
@@ -885,7 +951,9 @@ Object *Interpreter::visit_call_expr(Call *e)
 
     for (auto arg : e->m_args)
     {
-        args.push_back(evaluate(arg));
+        Object *tmp = evaluate(arg);
+        m_tmp_vals.push_back(tmp);
+        args.push_back(tmp);
     }
 
     DebugManager debug_manager(this);
@@ -893,7 +961,9 @@ Object *Interpreter::visit_call_expr(Call *e)
     m_debug_info.back().m_name = "call expression";
     m_debug_info.back().m_call_info = c->debug_info();
 
-    return c->call(args);
+    Object *res = c->call(args);
+    m_tmp_vals.push_back(res);
+    return res;
 }
 
 Object *Interpreter::visit_dot_expr(Dot *e)
@@ -913,14 +983,19 @@ Object *Interpreter::visit_subscript_expr(Subscript *e)
     m_debug_info.back().m_name = "subscript expression";
 
     Object *expr = evaluate(e->m_expr);
+    m_tmp_vals.push_back(expr);
 
     if (auto s = dynamic_cast<String *>(expr))
     {
-        return s->get(evaluate(e->m_index));
+        Object *o = evaluate(e->m_index);
+        m_tmp_vals.push_back(o);
+        return s->get(o);
     }
     if (auto l = dynamic_cast<List *>(expr))
     {
-        return l->get(evaluate(e->m_index));
+        Object *o = evaluate(e->m_index);
+        m_tmp_vals.push_back(o);
+        return l->get(o);
     }
 
     return nullptr;
@@ -944,30 +1019,34 @@ Object *Interpreter::visit_literal(Literal *e)
     case TokenType::IntLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Int);
-        o->m_eternal = true;
+        // o->m_eternal = true;
         static_cast<Int *>(o)->m_val = stoi(e->m_token.m_lexeme);
+        // e->m_val = o;
         return o;
     }
     case TokenType::FloatLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Float);
-        o->m_eternal = true;
+        // o->m_eternal = true;
         static_cast<Float *>(o)->m_val = stod(e->m_token.m_lexeme);
+        // e->m_val = o;
         return o;
     }
     case TokenType::True:
     case TokenType::False:
     {
         Object *o = GC::instance().new_object(ObjectType::Bool);
-        o->m_eternal = true;
+        // o->m_eternal = true;
         static_cast<Bool *>(o)->m_val = e->m_token.m_type == TokenType::True;
+        // e->m_val = o;
         return o;
     }
     case TokenType::StrLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::String);
-        o->m_eternal = true;
+        // o->m_eternal = true;
         dynamic_cast<String *>(o)->m_val = e->m_token.m_lexeme;
+        // e->m_val = o;
         return o;
     }
     default:
@@ -1021,6 +1100,7 @@ Object *Interpreter::visit_lambda(Lambda *e)
     m_debug_info.back().m_name = "lambda";
 
     LambdaFunction *lf = dynamic_cast<LambdaFunction *>(GC::instance().new_object<LambdaFunction>());
+    m_tmp_vals.push_back(lf);
     lf->m_interp = this;
     lf->m_l = e;
     for (auto t : e->m_capture)
@@ -1045,6 +1125,7 @@ Object *Interpreter::visit_list(ListExpr *e)
     }
 
     Object *o = GC::instance().new_object(ObjectType::List);
+    m_tmp_vals.push_back(o);
     dynamic_cast<List *>(o)->m_vals = vals;
 
     for (auto el : dynamic_cast<List *>(o)->m_vals)
@@ -1061,7 +1142,7 @@ void Interpreter::visit_var_stmt(VarStmt *e)
     m_debug_info.back().m_line = e->m_line;
     m_debug_info.back().m_name = "var statement";
 
-    m_env.define(e->m_token, e->m_expr ? evaluate(e->m_expr) : nullptr);
+    m_env.define(e->m_token, e->m_expr ? evaluate_whole_expr(e->m_expr) : nullptr);
 }
 
 void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
@@ -1072,24 +1153,24 @@ void Interpreter::visit_assignment_stmt(AssignmentStmt *e)
 
     if (auto p = dynamic_cast<Var *>(e->m_lval))
     {
-        m_env.assign(p->m_token, evaluate(e->m_expr));
+        m_env.assign(p->m_token, evaluate_whole_expr(e->m_expr));
         return;
     }
     if (auto p2 = dynamic_cast<Dot *>(e->m_lval))
     {
-        Object *o = evaluate(p2->m_expr);
+        Object *o = evaluate_whole_expr(p2->m_expr);
         o->m_eternal = true;
-        o->set_field(p2->m_name.m_lexeme, evaluate(e->m_expr));
+        o->set_field(p2->m_name.m_lexeme, evaluate_whole_expr(e->m_expr));
         o->m_eternal = false;
         return;
     }
     if (auto p3 = dynamic_cast<Subscript *>(e->m_lval))
     {
-        Object *o = evaluate(p3->m_expr);
+        Object *o = evaluate_whole_expr(p3->m_expr);
         o->m_eternal = true;
         if (auto a = dynamic_cast<Indexable *>(o))
         {
-            a->set(evaluate(p3->m_index), evaluate(e->m_expr));
+            a->set(evaluate_whole_expr(p3->m_index), evaluate_whole_expr(e->m_expr));
         }
         o->m_eternal = false;
         return;
@@ -1104,7 +1185,7 @@ void Interpreter::visit_expression_stmt(ExpressionStmt *e)
     m_debug_info.back().m_line = e->m_line;
     m_debug_info.back().m_name = "expression statement";
 
-    evaluate(e->m_expr);
+    evaluate_whole_expr(e->m_expr);
 }
 
 void Interpreter::visit_if_stmt(IfStmt *e)
@@ -1115,7 +1196,7 @@ void Interpreter::visit_if_stmt(IfStmt *e)
 
     for (size_t i = 0; i < e->m_conds.size(); ++i)
     {
-        Object *o = evaluate(e->m_conds[i]);
+        Object *o = evaluate_whole_expr(e->m_conds[i]);
 
         if (is_true(o))
         {
@@ -1140,7 +1221,7 @@ void Interpreter::visit_while_stmt(WhileStmt *e)
 
     try
     {
-        while (is_true(evaluate(e->m_cond)))
+        while (is_true(evaluate_whole_expr(e->m_cond)))
         {
             try
             {
@@ -1171,19 +1252,24 @@ void Interpreter::visit_for_stmt(ForStmt *e)
 
         if (e->m_begin)
         {
-            Object *begin_obj = evaluate(e->m_begin);
-            Object *end_obj = evaluate(e->m_end);
+            Object *begin_obj = evaluate_whole_expr(e->m_begin);
+            begin_obj->m_eternal = true;
+            Object *end_obj = evaluate_whole_expr(e->m_end);
+            end_obj->m_eternal = true;
             Object *step_obj = nullptr;
 
             if (e->m_step)
             {
-                step_obj = evaluate(e->m_step);
+                step_obj = evaluate_whole_expr(e->m_step);
             }
             else
             {
                 step_obj = GC::instance().new_object(ObjectType::Int);
                 dynamic_cast<Int *>(step_obj)->m_val = 1;
             }
+
+            begin_obj->m_eternal = false;
+            end_obj->m_eternal = false;
 
             Int *ibegin = dynamic_cast<Int *>(begin_obj);
             if (!ibegin)
@@ -1228,7 +1314,8 @@ void Interpreter::visit_for_stmt(ForStmt *e)
         }
         else if (e->m_iterable)
         {
-            Object *iterable = evaluate(e->m_iterable);
+            Object *iterable = evaluate_whole_expr(e->m_iterable);
+            iterable->m_eternal = true;
             Object *it = nullptr;
 
             try
@@ -1237,8 +1324,11 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             }
             catch (const std::exception &)
             {
+                iterable->m_eternal = false;
                 throw runtime_error(report_error("uniterable object"));
             }
+
+            iterable->m_eternal = false;
 
             hs.m_env.define(Token(TokenType::Var, "__for_iterable__", 0, 0), iterable);
             hs.m_env.define(Token(TokenType::Var, "__for_it__", 0, 0), it);
@@ -1318,7 +1408,7 @@ void Interpreter::visit_return_stmt(ReturnStmt *e)
     m_debug_info.back().m_line = e->m_line;
     m_debug_info.back().m_name = "return statement";
 
-    Object *r = e->m_expr == nullptr ? nullptr : evaluate(e->m_expr);
+    Object *r = e->m_expr == nullptr ? nullptr : evaluate_whole_expr(e->m_expr);
     throw ReturnSignal(r);
 }
 
@@ -1329,6 +1419,7 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
     m_debug_info.back().m_name = "class statement";
 
     Class *cl = dynamic_cast<Class *>(GC::instance().new_object<Class>());
+    cl->m_eternal = true;
     cl->m_interp = this;
     cl->m_cst = e;
 
@@ -1340,11 +1431,13 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
         fn->m_class_name = e->m_name.m_lexeme;
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
         {
+            cl->m_eternal = false;
             throw runtime_error(report_error("duplicate method '" + fn->m_fst->m_name.m_lexeme + "' in class '" + cl->m_cst->m_name.m_lexeme + "'"));
         }
         cl->m_methods.emplace(fn->m_fst->m_name.m_lexeme, fn);
     }
 
+    cl->m_eternal = false;
     m_env.define(Token(TokenType::Var, cl->m_cst->m_name.m_lexeme, 0, 0), cl);
 }
 

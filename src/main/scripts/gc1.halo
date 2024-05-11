@@ -6,14 +6,16 @@ for i in (5, 200):
     lst.put(i);
 end
 
-print_gc_info();
-
 var sum = 0;
+
+print_gc_info();
 
 lst.pop_at(2);
 
 for el in lst:
-    let sum = sum + el;
+    let sum = sum + el + 1 + 2 + 3;
+    print_gc_info();
+    gc_collect();
 end
 
 print_gc_info();

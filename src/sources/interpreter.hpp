@@ -18,6 +18,8 @@ namespace halo
 
     class Interpreter : public ExprVisitor, public StmtVisitor
     {
+        friend class GC;
+
         struct DebugInfo
         {
             size_t m_line;
@@ -44,6 +46,7 @@ namespace halo
         std::vector<DebugInfo> m_debug_info;
 
         Environment m_env;
+        std::vector<Object *> m_tmp_vals;
         std::istream &m_in;
         std::ostream &m_out;
         int m_fun_scope_counter;
@@ -58,6 +61,7 @@ namespace halo
                 if (OpType *p_right = dynamic_cast<OpType *>(right))
                 {
                     Object *r = GC::instance().new_object(ObType);
+                    m_tmp_vals.push_back(r);
                     dynamic_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
@@ -74,6 +78,7 @@ namespace halo
                 if (OpType2 *p_right = dynamic_cast<OpType2 *>(right))
                 {
                     Object *r = GC::instance().new_object(ObType);
+                    m_tmp_vals.push_back(r);
                     static_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
@@ -83,6 +88,7 @@ namespace halo
                 if (OpType1 *p_right = dynamic_cast<OpType1 *>(right))
                 {
                     Object *r = GC::instance().new_object(ObType);
+                    m_tmp_vals.push_back(r);
                     static_cast<ResType *>(r)->m_val = op(p_left->m_val, p_right->m_val);
                     return r;
                 }
@@ -162,8 +168,19 @@ namespace halo
             m_script = script;
         }
 
+        void clear_tmp_stack_from(size_t index)
+        {
+            m_tmp_vals.erase(m_tmp_vals.begin() + index, m_tmp_vals.end());
+        }
+
+        std::vector<Object *> &get_tmp_vals()
+        {
+            return m_tmp_vals;
+        }
+
         void interpret(Expr *e);
         Object *evaluate(Expr *e);
+        Object *evaluate_whole_expr(Expr *e);
         void execute(const std::vector<std::unique_ptr<Stmt>> &stmts);
         void execute_stmt(Stmt *stmt);
 

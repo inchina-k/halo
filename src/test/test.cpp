@@ -1483,7 +1483,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <break statement> out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 1: <break statement> out of loop");
     }
 
     SUBCASE("control_stmt/006")
@@ -1494,7 +1494,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <continue statement> out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 1: <continue statement> out of loop");
     }
 
     SUBCASE("control_stmt/007")
@@ -1505,7 +1505,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 2: <break statement> out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 2: <break statement> out of loop");
     }
 
     SUBCASE("control_stmt/008")
@@ -1516,7 +1516,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 2: <continue statement> out of loop");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 2: <continue statement> out of loop");
     }
 
     /* FOR */
@@ -1808,7 +1808,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <return statement> out of function");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 1: <return statement> out of function");
     }
 
     SUBCASE("fun/007")
@@ -1872,7 +1872,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 2: <fun statement> must be global or a class member");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 2: <fun statement> must be global or a class member");
     }
 
     SUBCASE("fun/011")
@@ -2011,7 +2011,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 1: <lambda expression> cannot be used in another lambda or as a class member");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 1: <lambda expression> cannot be used in another lambda or as a class member");
     }
 
     SUBCASE("lambda/008")
@@ -2113,7 +2113,7 @@ TEST_CASE("scripts")
         auto v = sc.scan();
         Parser p(v);
 
-        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\nline 4: <return statement> must not have return value in constructor");
+        REQUIRE_THROWS_AS_MESSAGE(p.parse(), runtime_error, "Parse error\n    line 4: <return statement> must not have return value in constructor");
     }
 
     SUBCASE("class/006")
@@ -2633,7 +2633,10 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
 
         REQUIRE_THROWS_WITH_AS(interp.execute(p.statements()),
-                               "Execution error\n    line 4: <expression statement> invalid number of arguments in method 'put' in class List\nCall stack\n    method T.f (at line 10)\n    fun main (at line 13)\n    script: main",
+                               "Execution error\n    line 4: <expression statement> invalid number of arguments in method 'put' in class List\nCall stack\n    method T.f (at line 10)\n    fun main (at line 13)\n    script: cli",
                                runtime_error);
     }
+
+#ifdef asafasfaf
+#endif
 }
