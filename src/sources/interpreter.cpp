@@ -779,6 +779,16 @@ Object *Interpreter::visit_binary_expr(BinaryExpr *e)
         }
         throw runtime_error(report_error("incorrect operand types for '" + e->m_token.m_lexeme + "' operator"));
     case TokenType::Div:
+        if (dynamic_cast<Int *>(o1))
+        {
+            if (Int *p_right = dynamic_cast<Int *>(o2))
+            {
+                if (p_right->m_val == 0)
+                {
+                    throw runtime_error(report_error("division by zero"));
+                }
+            }
+        }
         if (Object *res = bin_op<Int, ObjectType::Int>(o1, o2, divides<long long>()))
         {
             return res;
