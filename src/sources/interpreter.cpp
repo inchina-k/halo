@@ -593,7 +593,9 @@ struct PrintGCInfo : Callable
     Object *call([[maybe_unused]] const std::vector<Object *> &args) override
     {
         m_interp->get_out() << "Objects in GC: " << GC::instance().count() << endl;
-        m_interp->get_out() << "threshold: " << GC::instance().get_treshold() << endl;
+        m_interp->get_out() << "Threshold: " << GC::instance().get_treshold() << endl;
+        // cerr << "Objects in GC: " << GC::instance().count() << endl;
+        // cerr << "Threshold: " << GC::instance().get_treshold() << endl;
         return nullptr;
     }
 
@@ -1046,34 +1048,34 @@ Object *Interpreter::visit_literal(Literal *e)
     case TokenType::IntLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Int);
-        // o->m_eternal = true;
+        o->m_eternal = true;
         static_cast<Int *>(o)->m_val = stoi(e->m_token.m_lexeme);
-        // e->m_val = o;
+        e->m_val = o;
         return o;
     }
     case TokenType::FloatLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::Float);
-        // o->m_eternal = true;
+        o->m_eternal = true;
         static_cast<Float *>(o)->m_val = stod(e->m_token.m_lexeme);
-        // e->m_val = o;
+        e->m_val = o;
         return o;
     }
     case TokenType::True:
     case TokenType::False:
     {
         Object *o = GC::instance().new_object(ObjectType::Bool);
-        // o->m_eternal = true;
+        o->m_eternal = true;
         static_cast<Bool *>(o)->m_val = e->m_token.m_type == TokenType::True;
-        // e->m_val = o;
+        e->m_val = o;
         return o;
     }
     case TokenType::StrLiteral:
     {
         Object *o = GC::instance().new_object(ObjectType::String);
-        // o->m_eternal = true;
+        o->m_eternal = true;
         dynamic_cast<String *>(o)->m_val = e->m_token.m_lexeme;
-        // e->m_val = o;
+        e->m_val = o;
         return o;
     }
     default:
@@ -1446,9 +1448,10 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
     m_debug_info.back().m_name = "class statement";
 
     Class *cl = dynamic_cast<Class *>(GC::instance().new_object<Class>());
-    cl->m_eternal = true;
     cl->m_interp = this;
     cl->m_cst = e;
+
+    m_env.define(Token(TokenType::Var, cl->m_cst->m_name.m_lexeme, 0, 0), cl);
 
     for (const auto &f : e->m_methods)
     {
@@ -1458,14 +1461,10 @@ void Interpreter::visit_class_stmt(ClassStmt *e)
         fn->m_class_name = e->m_name.m_lexeme;
         if (cl->m_methods.find(fn->m_fst->m_name.m_lexeme) != cl->m_methods.end())
         {
-            cl->m_eternal = false;
             throw runtime_error(report_error("duplicate method '" + fn->m_fst->m_name.m_lexeme + "' in class '" + cl->m_cst->m_name.m_lexeme + "'"));
         }
         cl->m_methods.emplace(fn->m_fst->m_name.m_lexeme, fn);
     }
-
-    cl->m_eternal = false;
-    m_env.define(Token(TokenType::Var, cl->m_cst->m_name.m_lexeme, 0, 0), cl);
 }
 
 size_t Interpreter::get_curr_error_line()

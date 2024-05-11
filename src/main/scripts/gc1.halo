@@ -15,9 +15,9 @@ lst.pop_at(2);
 for el in lst:
     let sum = sum + el + 1 + 2 + 3;
     print_gc_info();
-    gc_collect();
 end
 
+gc_collect();
 print_gc_info();
 
 println(sum);

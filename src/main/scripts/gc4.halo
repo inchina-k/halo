@@ -1,0 +1,14 @@
+var s = "asdasdada";
+
+for i in (0, 50000):
+    let s = s + "hello";
+end
+
+var w = "";
+
+for i in s:
+    let w = w + i;
+end
+
+# println(w);
+print_gc_info();
