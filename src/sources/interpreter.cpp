@@ -425,7 +425,16 @@ struct ToInt : Callable
     {
         Object *res = GC::instance().new_object(ObjectType::Int);
         GC::instance().get_interp()->get_tmp_vals().push_back(res);
-        dynamic_cast<Int *>(res)->m_val = stoi(args.front()->to_str());
+
+        try
+        {
+            dynamic_cast<Int *>(res)->m_val = stoi(args.front()->to_str());
+        }
+        catch (const std::exception &)
+        {
+            throw runtime_error(GC::instance().get_interp()->report_error("invalid argument type in fun 'to_int'"));
+        }
+
         return res;
     }
 
@@ -451,7 +460,16 @@ struct ToFloat : Callable
     {
         Object *res = GC::instance().new_object(ObjectType::Float);
         GC::instance().get_interp()->get_tmp_vals().push_back(res);
-        dynamic_cast<Float *>(res)->m_val = stod(args.front()->to_str());
+
+        try
+        {
+            dynamic_cast<Float *>(res)->m_val = stod(args.front()->to_str());
+        }
+        catch (const std::exception &)
+        {
+            throw runtime_error(GC::instance().get_interp()->report_error("invalid argument type in fun 'to_float'"));
+        }
+
         return res;
     }
 
@@ -477,7 +495,16 @@ struct ToStr : Callable
     {
         Object *res = GC::instance().new_object(ObjectType::String);
         GC::instance().get_interp()->get_tmp_vals().push_back(res);
-        dynamic_cast<String *>(res)->m_val = args.front()->to_str();
+
+        try
+        {
+            dynamic_cast<String *>(res)->m_val = args.front()->to_str();
+        }
+        catch (const std::exception &)
+        {
+            throw runtime_error(GC::instance().get_interp()->report_error("invalid argument type in fun 'to_str'"));
+        }
+
         return res;
     }
 
