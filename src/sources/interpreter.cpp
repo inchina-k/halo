@@ -1120,6 +1120,11 @@ bool Interpreter::is_true(Object *o)
         return f->m_val != 0.0;
     }
 
+    if (List *l = dynamic_cast<List *>(o))
+    {
+        return !l->m_vals.empty();
+    }
+
     return true;
 }
 
