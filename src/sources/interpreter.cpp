@@ -304,6 +304,15 @@ struct Class : ClassBase
     string to_str() const override
     {
         string res = "<class " + m_cst->m_name.m_lexeme + ">:";
+
+        bool first = true;
+        for (const auto &name : m_cst->m_fields)
+        {
+            res += first ? "\nvar " : "\n    ";
+            res += name;
+            first = false;
+        }
+
         vector<string> vs;
         for (const auto &[name, fn] : m_methods)
         {
@@ -312,11 +321,12 @@ struct Class : ClassBase
 
         sort(vs.begin(), vs.end());
 
-        bool first = true;
+        first = true;
         for (const auto &name : vs)
         {
-            res += first ? "\n" : "";
+            res += first ? "\nfun " : "\n    ";
             res += name;
+            first = false;
         }
 
         return res;

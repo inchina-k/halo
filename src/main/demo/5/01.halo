@@ -7,9 +7,9 @@ class Point:
         let my.y = y;
     end
 	
-    fun move(xd, yd):  
-        let my.x = my.x + xd;
-        let my.y = my.y + yd;
+    fun move(dx, dy):  
+        let my.x = my.x + dx;
+        let my.y = my.y + dy;
     end
 end
 

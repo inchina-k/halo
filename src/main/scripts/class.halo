@@ -1,0 +1,13 @@
+class Point:
+    fun one():
+        println("one");
+        my.two();
+    end
+	
+    fun two():  
+       println("two");
+    end
+end
+
+var p = Point();
+p.one();
