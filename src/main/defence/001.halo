@@ -1,0 +1,33 @@
+# GCD
+
+fun main():
+    println(gcd(15, 10));
+    println(gcd(10, 15));
+    println(gcd(-10, 15));
+    println(gcd(-10, 0));
+end
+
+fun gcd(a, b):
+    if a == 0 and b == 0:
+        return 0;
+    end
+
+    return gcd_aux(abs(a), abs(b));
+end
+
+fun abs(a):
+    if a < 0:
+        return -a;
+    end
+    return a;
+end
+
+fun gcd_aux(a, b):
+    if b == 0:
+        return a;
+    end
+
+    return gcd_aux(b, a % b);
+end
+
+main();

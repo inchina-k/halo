@@ -1,0 +1,31 @@
+# vector<int> vec = {1, 10, 70, 42, 5};
+# int x;
+# cin >> x;
+# auto first_greater_x = find_if(begin(vec), end(vec), [x](auto e){return e > x;});
+# if (first_greater_x != end(vec)) {cout << *first_greater_x << endl;};
+
+fun main():
+    var lst = [1, 10, 70, 42, 5];
+
+    var x = to_int(readln());
+
+    var first_greater_x = find(lst, lambda[x](e): return e > x; end);
+
+    if first_greater_x:
+        println(first_greater_x);
+    else:
+        println("no element greater than " + to_str(x));
+    end
+end
+
+fun find(lst, cond):
+    for e in lst:
+        if cond(e):
+            return e;
+        end
+    end
+
+    return null;
+end
+
+main();

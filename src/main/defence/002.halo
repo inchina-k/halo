@@ -1,0 +1,25 @@
+# Higher-order-function: pass fun as an argument
+
+fun sqr(x):
+    return x * x;
+end
+
+fun cube(x):
+    return x * x * x;
+end
+
+fun print_table(title, a, b, h, f):
+    println("table of " + title + ":");
+    println("---");
+
+    var x = a;
+    while x <= b:
+        println(title + " of " + to_str(x) + " = " + to_str(f(x)));
+        let x = x + h;
+    end
+
+    println("---");
+end
+
+print_table("sqr", 1, 3, 1, sqr);
+print_table("cube", 1, 3, 1, cube);

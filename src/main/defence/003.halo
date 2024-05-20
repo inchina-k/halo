@@ -1,0 +1,23 @@
+# Higher-order-function: return fun as a result
+
+fun sqr(x):
+    return x * x;
+end
+
+fun cube(x):
+    return x * x * x;
+end
+
+fun calc(t):
+    if t == "square":
+        return sqr;
+    elif t == "cube":
+        return cube;
+    end
+end
+
+var res1 = calc("square")(2);
+var res2 = calc("cube")(2);
+
+println(res1);
+println(res2);
