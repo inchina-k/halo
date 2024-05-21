@@ -40,12 +40,18 @@ class Stack:
     end
 
     fun pop():
+        if not my.top_node:
+            error("attempt to pop from an empty stack");
+        end
         var res = my.top_node.data;
         let my.top_node = my.top_node.next;
         return res;
     end
 
     fun top():
+        if not my.top_node:
+            error("attempt to access element in an empty stack");
+        end
         return my.top_node.data;
     end
 end

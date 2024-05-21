@@ -574,10 +574,10 @@ struct SetRecursionDepth : Callable
                 return nullptr;
             }
 
-            throw runtime_error(m_interp->report_error("invalid depth value in 'set_recursion_depth'"));
+            throw runtime_error(m_interp->report_error("invalid depth value in fun 'set_recursion_depth'"));
         }
 
-        throw runtime_error(m_interp->report_error("invalid argument type in 'set_recursion_depth'"));
+        throw runtime_error(m_interp->report_error("invalid argument type in fun 'set_recursion_depth'"));
     }
 
     int arity() const override
@@ -649,6 +649,36 @@ struct GCCollect : Callable
     }
 };
 
+struct Error : Callable
+{
+    Interpreter *m_interp = nullptr;
+
+    Object *call([[maybe_unused]] const std::vector<Object *> &args) override
+    {
+        if (auto msg = dynamic_cast<String *>(args.front()))
+        {
+            throw runtime_error(m_interp->report_error(msg->m_val));
+        }
+
+        throw runtime_error(m_interp->report_error("invalid argument type in fun 'error'"));
+    }
+
+    int arity() const override
+    {
+        return 1;
+    }
+
+    string to_str() const override
+    {
+        return "error";
+    }
+
+    string debug_info() const override
+    {
+        return "error";
+    }
+};
+
 Interpreter::Interpreter(istream &in, ostream &out)
     : m_env(this), m_in(in), m_out(out), m_fun_scope_counter(0), m_max_fun_depth(1024), m_script("cli")
 {
@@ -679,6 +709,10 @@ Interpreter::Interpreter(istream &in, ostream &out)
     PrintGCInfo *pgci = dynamic_cast<PrintGCInfo *>(GC::instance().new_object<PrintGCInfo>());
     pgci->m_interp = this;
     m_env.define(Token(TokenType::Var, "print_gc_info", 0, 0), pgci);
+
+    Error *err = dynamic_cast<Error *>(GC::instance().new_object<Error>());
+    err->m_interp = this;
+    m_env.define(Token(TokenType::Var, "error", 0, 0), err);
 
     m_env.define(Token(TokenType::Var, "to_int", 0, 0), GC::instance().new_object<ToInt>());
     m_env.define(Token(TokenType::Var, "to_float", 0, 0), GC::instance().new_object<ToFloat>());
