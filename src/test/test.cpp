@@ -2167,7 +2167,7 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
         interp.execute(p.statements());
 
-        REQUIRE(s_out.str() == "Object[x=1, y=2]\nObject[x=42, y=2]\n44\n");
+        REQUIRE(s_out.str() == "Point[x=1, y=2]\nPoint[x=42, y=2]\n44\n");
     }
 
     SUBCASE("class/009")
@@ -2220,7 +2220,7 @@ TEST_CASE("scripts")
         Interpreter interp(s_in, s_out);
         interp.execute(p.statements());
 
-        REQUIRE(s_out.str() == "Object[x=3, y=4]\nObject[x=3, y=3]\n<class Point>:\nvar x\n    y\nfun _init_\n    move\n");
+        REQUIRE(s_out.str() == "Point[x=3, y=4]\nPoint[x=3, y=3]\n<class Point>:\nvar x\n    y\nfun _init_\n    move\n");
     }
 
     /* CALL */

@@ -19,6 +19,9 @@ fun main():
             stack.push(left * right);
         elif token == "/":
             var right = stack.pop();
+            if (right == 0):
+                error("division by 0");
+            end
             var left = stack.pop();
             stack.push(left / right);
         else:

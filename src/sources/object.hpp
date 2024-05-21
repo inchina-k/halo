@@ -26,24 +26,7 @@ namespace halo
         {
         }
 
-        virtual std::string to_str() const
-        {
-            std::string res = "Object[";
-            bool first = true;
-
-            for (auto field : m_fields)
-            {
-                res += first ? "" : ", ";
-                res += field.first;
-                res += "=";
-                res += field.second ? field.second->to_str() : "null";
-                first = false;
-            }
-
-            res += "]";
-
-            return res;
-        }
+        virtual std::string to_str() const;
 
         void set_field(const std::string &name, Object *val);
         Object *get_field(const std::string &name);

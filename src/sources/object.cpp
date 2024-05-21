@@ -7,6 +7,25 @@
 using namespace std;
 using namespace halo;
 
+string Object::to_str() const
+{
+    std::string res = m_type->get_name() + "[";
+    bool first = true;
+
+    for (auto field : m_fields)
+    {
+        res += first ? "" : ", ";
+        res += field.first;
+        res += "=";
+        res += field.second ? field.second->to_str() : "null";
+        first = false;
+    }
+
+    res += "]";
+
+    return res;
+}
+
 string Int::to_str() const
 {
     return to_string(m_val);
