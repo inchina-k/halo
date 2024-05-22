@@ -1,8 +1,12 @@
 var s = "asdasdada";
 
-for i in (0, 50000):
+print_gc_info();
+
+for i in (0, 5000):
     let s = s + "hello";
 end
+
+print_gc_info();
 
 var w = "";
 

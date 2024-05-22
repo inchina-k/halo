@@ -992,6 +992,10 @@ Object *Interpreter::visit_call_expr(Call *e)
     if (auto p = dynamic_cast<Dot *>(e->m_expr))
     {
         Object *o = evaluate(p->m_expr);
+        if (!o)
+        {
+            throw runtime_error(report_error("attempt to perform a call on null"));
+        }
         m_tmp_vals.push_back(o);
 
         vector<Object *> args;
@@ -1016,6 +1020,10 @@ Object *Interpreter::visit_call_expr(Call *e)
     }
 
     Object *o = evaluate(e->m_expr);
+    if (!o)
+    {
+        throw runtime_error(report_error("attempt to perform a call on null"));
+    }
     m_tmp_vals.push_back(o);
 
     Callable *c = dynamic_cast<Callable *>(o);
