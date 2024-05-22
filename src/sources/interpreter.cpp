@@ -1416,6 +1416,7 @@ void Interpreter::visit_for_stmt(ForStmt *e)
 
             try
             {
+                iterable->m_type->check_method("_iter_", vector<Object *>());
                 it = iterable->call_method("_iter_", vector<Object *>());
             }
             catch (const std::exception &)
@@ -1431,6 +1432,9 @@ void Interpreter::visit_for_stmt(ForStmt *e)
 
             try
             {
+                it->m_type->check_method("_has_next_", vector<Object *>());
+                it->m_type->check_method("_next_", vector<Object *>());
+
                 Bool *has_next = dynamic_cast<Bool *>(it->call_method("_has_next_", vector<Object *>()));
 
                 if (!has_next)
