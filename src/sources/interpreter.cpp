@@ -1414,6 +1414,15 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             iterable->m_eternal = true;
             Object *it = nullptr;
 
+            auto *cls = dynamic_cast<Class *>(iterable->m_type);
+            auto *str = dynamic_cast<String *>(iterable->m_type);
+            auto *lst = dynamic_cast<List *>(iterable->m_type);
+
+            if (!str && !lst && !cls)
+            {
+                throw runtime_error(report_error("uniterable object"));
+            }
+
             try
             {
                 iterable->m_type->check_method("_iter_", vector<Object *>());
