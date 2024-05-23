@@ -178,6 +178,14 @@ namespace halo
             return m_tmp_vals;
         }
 
+        void check_null(Object *obj, const std::string &msg)
+        {
+            if (!obj)
+            {
+                throw std::runtime_error(report_error(msg));
+            }
+        }
+
         void interpret(Expr *e);
         Object *evaluate(Expr *e);
         Object *evaluate_whole_expr(Expr *e);

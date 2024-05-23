@@ -1,0 +1,2 @@
+var x = lambda[while](null):println(null);end;
+println("hello");

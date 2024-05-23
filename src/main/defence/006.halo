@@ -19,9 +19,6 @@ fun main():
             stack.push(left * right);
         elif token == "/":
             var right = stack.pop();
-            if (right == 0):
-                error("division by 0");
-            end
             var left = stack.pop();
             stack.push(left / right);
         else:
@@ -32,14 +29,24 @@ fun main():
         let token = readln();
     end
 
-    println("res: " + to_str(stack.top()));
+    if stack.size() == 1:
+        println("res: " + to_str(stack.top()));
+    else:
+        println("incorrect postfix expression");
+    end
 end
 
 class Stack:
     var top_node;
+    var curr_len;
+
+    fun _init_():
+        let my.curr_len = 0;
+    end
     
     fun push(data):
         let my.top_node = Node(data, my.top_node);
+        let my.curr_len = my.curr_len + 1;
     end
 
     fun pop():
@@ -48,6 +55,7 @@ class Stack:
         end
         var res = my.top_node.data;
         let my.top_node = my.top_node.next;
+        let my.curr_len = my.curr_len - 1;
         return res;
     end
 
@@ -56,6 +64,10 @@ class Stack:
             error("attempt to access element in an empty stack");
         end
         return my.top_node.data;
+    end
+
+    fun size():
+        return my.curr_len;
     end
 end
 

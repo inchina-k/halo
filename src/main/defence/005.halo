@@ -12,6 +12,7 @@ fun main():
     var first_greater_x = find(lst, lambda[x](e): return e > x; end);
 
     if first_greater_x:
+        print("first element greater than " + to_str(x) + " is ");
         println(first_greater_x);
     else:
         println("no element greater than " + to_str(x));

@@ -1216,7 +1216,10 @@ Object *Interpreter::visit_list(ListExpr *e)
     for (auto el : e->m_params)
     {
         Object *v = evaluate(el);
-        v->m_eternal = true;
+        if (v)
+        {
+            v->m_eternal = true;
+        }
         vals.push_back(v);
     }
 
@@ -1226,7 +1229,10 @@ Object *Interpreter::visit_list(ListExpr *e)
 
     for (auto el : dynamic_cast<List *>(o)->m_vals)
     {
-        el->m_eternal = false;
+        if (el)
+        {
+            el->m_eternal = false;
+        }
     }
 
     return o;
@@ -1349,14 +1355,17 @@ void Interpreter::visit_for_stmt(ForStmt *e)
         if (e->m_begin)
         {
             Object *begin_obj = evaluate_whole_expr(e->m_begin);
+            check_null(begin_obj, "first index in range cannot be null");
             begin_obj->m_eternal = true;
             Object *end_obj = evaluate_whole_expr(e->m_end);
+            check_null(end_obj, "last index in range cannot be null");
             end_obj->m_eternal = true;
             Object *step_obj = nullptr;
 
             if (e->m_step)
             {
                 step_obj = evaluate_whole_expr(e->m_step);
+                check_null(step_obj, "step in range cannot be null");
             }
             else
             {
@@ -1411,6 +1420,7 @@ void Interpreter::visit_for_stmt(ForStmt *e)
         else if (e->m_iterable)
         {
             Object *iterable = evaluate_whole_expr(e->m_iterable);
+            check_null(iterable, "attempt to iterate through null");
             iterable->m_eternal = true;
             Object *it = nullptr;
 
@@ -1426,13 +1436,15 @@ void Interpreter::visit_for_stmt(ForStmt *e)
             try
             {
                 iterable->m_type->check_method("_iter_", vector<Object *>());
-                it = iterable->call_method("_iter_", vector<Object *>());
             }
             catch (const std::exception &)
             {
                 iterable->m_eternal = false;
                 throw runtime_error(report_error("uniterable object"));
             }
+
+            it = iterable->call_method("_iter_", vector<Object *>());
+            check_null(it, "iterator cannot be null");
 
             iterable->m_eternal = false;
 

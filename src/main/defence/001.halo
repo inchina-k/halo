@@ -1,9 +1,19 @@
 # GCD
 
 fun main():
+    print("GCD(15, 10) = ");
     println(gcd(15, 10));
+
+    print("GCD(10, 15) = ");
     println(gcd(10, 15));
+
+    print("GCD(-10, 15) = ");
     println(gcd(-10, 15));
+
+    print("GCD(13, 17) = ");
+    println(gcd(13, 17));
+
+    print("GCD(-10, 0) = ");
     println(gcd(-10, 0));
 end
 
