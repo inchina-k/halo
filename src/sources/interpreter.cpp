@@ -438,7 +438,7 @@ struct ToInt : Callable
 
         try
         {
-            dynamic_cast<Int *>(res)->m_val = stoi(args.front()->to_str());
+            dynamic_cast<Int *>(res)->m_val = stoll(args.front()->to_str());
         }
         catch (const std::exception &)
         {
@@ -1111,7 +1111,16 @@ Object *Interpreter::visit_literal(Literal *e)
     {
         Object *o = GC::instance().new_object(ObjectType::Int);
         o->m_eternal = true;
-        static_cast<Int *>(o)->m_val = stoi(e->m_token.m_lexeme);
+
+        try
+        {
+            static_cast<Int *>(o)->m_val = stoll(e->m_token.m_lexeme);
+        }
+        catch (const std::exception &)
+        {
+            throw runtime_error(report_error("invalid integer literal"));
+        }
+
         e->m_val = o;
         return o;
     }
@@ -1119,7 +1128,16 @@ Object *Interpreter::visit_literal(Literal *e)
     {
         Object *o = GC::instance().new_object(ObjectType::Float);
         o->m_eternal = true;
-        static_cast<Float *>(o)->m_val = stod(e->m_token.m_lexeme);
+
+        try
+        {
+            static_cast<Float *>(o)->m_val = stod(e->m_token.m_lexeme);
+        }
+        catch (const std::exception &)
+        {
+            throw runtime_error(report_error("invalid floating point literal"));
+        }
+
         e->m_val = o;
         return o;
     }
